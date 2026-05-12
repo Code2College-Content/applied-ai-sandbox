@@ -5,7 +5,7 @@ describe exactly what "done" means.
 """
 from __future__ import annotations
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, abort
 
 
 def create_app() -> Flask:
@@ -44,7 +44,13 @@ def create_app() -> Flask:
             return redirect(url_for("home"))
         return render_template("new_note.html")
 
-    # TASK 02 will add a /notes/<idx>/delete route here.
+    @app.route("/notes/<int:idx>/delete", methods=["POST"])
+    def delete_note(idx):
+        try:
+            app.notes.pop(idx)
+        except IndexError:
+            abort(404)
+        return redirect(url_for("home"))
 
     return app
 
