@@ -39,10 +39,10 @@ pytest tests/test_task_01.py
 - When unsure, prefer reading the test file first — it tells you exactly
   what behavior is expected.
 
-## Working with Claude here
+## Working with Gemini here
 
 - Always read the task file before writing code.
-- Plan before implementing — ask Claude for a plan first.
+- Plan before implementing — ask Gemini for a plan first.
 - Run `pytest` after each substantive change.
-- If Claude proposes editing a test to "make it pass," push back. The
+- If Gemini proposes editing a test to "make it pass," push back. The
   tests are the spec.

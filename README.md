@@ -2,7 +2,7 @@
 
 Hands-on training repo for the Code2College **Applied AI Cohort** (Summer 2026
 pilot). A small Flask app with intentional gaps and numbered tasks. You'll
-work through tasks here using Claude Code as your collaborator.
+work through tasks here using Gemini CLI as your collaborator.
 
 This is **practice space**. Push your own branches, open PRs against
 upstream — never merge straight to `main`.
@@ -42,7 +42,7 @@ app.py                  Flask entry point (single-file app for now)
 templates/              Jinja templates
 tasks/                  numbered task descriptions (TASK_01.md, TASK_02.md, …)
 tests/                  pytest acceptance tests for each task
-CLAUDE.md               project context Claude Code reads automatically
+GEMINI.md               project context Gemini CLI reads automatically
 requirements.txt        Python dependencies
 ```
 
