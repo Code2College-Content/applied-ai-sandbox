@@ -46,3 +46,8 @@ pytest tests/test_task_01.py
 - Run `pytest` after each substantive change.
 - If Claude proposes editing a test to "make it pass," push back. The
   tests are the spec.
+
+## App structure
+- This app uses a `create_app()` factory pattern. All new routes and extensions
+  must be wired inside the factory, not at module level.
+- Never add a global `app` object outside the factory. It breaks the test fixtures.
