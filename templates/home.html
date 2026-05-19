@@ -9,6 +9,8 @@
     .meta { color: #666; margin-bottom: 1.5rem; }
     .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
     .note h3 { margin: 0 0 0.5rem; }
+    .toolbar { margin-bottom: 1.25rem; }
+    .toolbar .btn { margin-right: 0.5rem; }
     a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
   </style>
 </head>
@@ -16,15 +18,19 @@
   <h1>Sandbox Notes</h1>
   <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
 
-  <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
+  <div class="toolbar">
+    <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
+    <span style="color:#333; margin-left: 0.75rem;">Signed in as {{ current_user.username }}</span>
+    <a class="btn" href="{{ url_for('logout') }}" style="background: #666; margin-left: 0.5rem;">Log out</a>
+  </div>
 
   <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
   {% if notes %}
-    {% for note in notes %}
+    {% for idx, note in notes %}
       <div class="note">
         <h3>{{ note.title }}</h3>
         <p>{{ note.body }}</p>
-        <form method="POST" action="{{ url_for('delete_note', idx=loop.index0) }}" style="display: inline;">
+        <form method="POST" action="{{ url_for('delete_note', idx=idx) }}" style="display: inline;">
           <button type="submit" style="background: #b00020; color: #fff; padding: 0.25rem 0.75rem; border: none; border-radius: 4px; font: inherit; cursor: pointer;">Delete</button>
         </form>
       </div>
