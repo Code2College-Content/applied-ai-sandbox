@@ -46,3 +46,10 @@ pytest tests/test_task_01.py
 - Run `pytest` after each substantive change.
 - If Claude proposes editing a test to "make it pass," push back. The
   tests are the spec.
+
+## Auth
+
+- Use Flask-Login for session management and werkzeug.security for
+  password hashing. Never roll a custom auth flow or store plaintext passwords.
+- Password reset, email verification, and "remember me" are out of scope
+  for this sandbox.
