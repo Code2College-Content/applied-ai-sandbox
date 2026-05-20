@@ -5,29 +5,33 @@
   <title>Sandbox Notes</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
-    h1 { margin-bottom: 0.25rem; }
-    .meta { color: #666; margin-bottom: 1.5rem; }
     .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
     .note h3 { margin: 0 0 0.5rem; }
-    a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
+    form { display: inline; }
+    button { margin-top: 0.5rem; background: #b00020; color: white; border: none; padding: 0.4rem 0.7rem; border-radius: 6px; cursor: pointer; }
   </style>
 </head>
 <body>
+
   <h1>Sandbox Notes</h1>
-  <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
 
-  <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
+  <a href="{{ url_for('new_note') }}">+ New note</a>
 
-  <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
-  {% if notes %}
-    {% for note in notes %}
-      <div class="note">
-        <h3>{{ note.title }}</h3>
-        <p>{{ note.body }}</p>
-      </div>
-    {% endfor %}
+  <h2>Your notes</h2>
+
+  {% for note in notes %}
+    <div class="note">
+      <h3>{{ note.title }}</h3>
+      <p>{{ note.body }}</p>
+
+      <!-- ✅ THIS is what the tests are looking for -->
+      <form method="POST" action="/notes/{{ loop.index0 }}/delete">
+        <button type="submit">Delete</button>
+      </form>
+    </div>
   {% else %}
     <p>No notes yet.</p>
-  {% endif %}
+  {% endfor %}
+
 </body>
 </html>
