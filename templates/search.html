@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Search · Sandbox</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='search.css') }}">
+</head>
+<body>
+  <main class="search-app">
+    <aside class="sidebar">
+      <div class="search-box">
+        <label class="visually-hidden" for="q">Search notes</label>
+        <div class="input-wrap">
+          <input id="q" type="search" placeholder="Search notes by title..." aria-label="Search notes">
+          <button id="clear" class="clear-btn" aria-label="Clear search">×</button>
+        </div>
+        <div class="results-meta"><span id="count">{{ notes|length }} results</span></div>
+      </div>
+
+      <ul id="results" class="results">
+        {% for n in notes %}
+          <li class="result-item" data-id="{{ n.id }}">
+            <div class="result-title">{{ n.title }}</div>
+            <div class="result-meta mono">ID: {{ n.id }}</div>
+          </li>
+        {% endfor %}
+      </ul>
+    </aside>
+
+    <section class="main">
+      <div id="note-empty" class="empty">Select a note to preview</div>
+      <article id="note" class="note hidden">
+        <h2 id="note-title"></h2>
+        <div id="note-tags" class="tags mono"></div>
+        <div id="note-body" class="body"></div>
+      </article>
+
+      <aside class="callout">
+        <div class="callout-title">Backend</div>
+        <pre class="mono">GET /api/notes?q={title}</pre>
+        <div class="callout-desc">Server: use SQLite LIKE '%title%' and order by <code>updated_at</code></div>
+      </aside>
+    </section>
+  </main>
+
+  <script>window.INITIAL_NOTES = {{ notes|tojson }};</script>
+  <script src="{{ url_for('static', filename='search.js') }}"></script>
+</body>
+</html>

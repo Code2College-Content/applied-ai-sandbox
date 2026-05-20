@@ -88,6 +88,28 @@ def create_app(test_config: dict | None = None) -> Flask:
             return redirect(url_for("home"))
         return render_template("new_note.html")
 
+    @app.route("/search")
+    @login_required
+    def search():
+        # prepare a lightweight list of notes owned by current user for client-side search
+        notes = [
+            (idx, note)
+            for idx, note in enumerate(app.notes)
+            if note["owner"] == current_user.get_id()
+        ]
+        notes_for_client = []
+        for idx, note in notes:
+            notes_for_client.append(
+                {
+                    "id": idx,
+                    "title": note.get("title", ""),
+                    "body": note.get("body", ""),
+                    "tags": note.get("tags", []),
+                    "updated_at": note.get("updated_at"),
+                }
+            )
+        return render_template("search.html", notes=notes_for_client)
+
     @app.route("/notes/<int:idx>/delete", methods=["POST"])
     @login_required
     def delete_note(idx):
