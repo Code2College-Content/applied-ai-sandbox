@@ -48,6 +48,6 @@ pytest tests/test_task_01.py
   tests are the spec.
 
 ## Auth
-- Create a plan from the user's demand before coding
-- Do not make changes to the notes schema
-- Use SQLite tables to store users
+- Create a plan from the user's demand before coding.
+- Do not make changes to the notes schema.
+- Use SQLite tables to store users.
