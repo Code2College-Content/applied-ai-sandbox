@@ -49,4 +49,4 @@ pytest tests/test_task_01.py
 
 ## Auth
 - Do not make changes to note schema
-- Do not add additional files
+- Do not add additional files besides /login.html, /register.html

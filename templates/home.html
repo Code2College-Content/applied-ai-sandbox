@@ -10,9 +10,19 @@
     .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
     .note h3 { margin: 0 0 0.5rem; }
     a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
+    nav { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-bottom: 1rem; font-size: 0.9rem; color: #555; }
+    nav form { margin: 0; }
+    nav button { background: none; border: none; color: #1a2540; cursor: pointer; font-size: 0.9rem; padding: 0; text-decoration: underline; }
   </style>
 </head>
 <body>
+  <nav>
+    Logged in as <strong>{{ username }}</strong>
+    <form method="POST" action="{{ url_for('logout') }}">
+      <button type="submit">Log out</button>
+    </form>
+  </nav>
+
   <h1>Sandbox Notes</h1>
   <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
 
