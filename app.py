@@ -5,6 +5,9 @@ describe exactly what "done" means.
 """
 from __future__ import annotations
 
+import html as _html
+import re as _re
+
 from flask import Flask, redirect, render_template, request, url_for
 from flask_login import (
     LoginManager,
@@ -20,6 +23,77 @@ from models import create_user, find_by_id, find_by_username, init_db
 
 def parse_tags(tag_string: str) -> list[str]:
     return [t.strip() for t in tag_string.split(",") if t.strip()]
+
+
+def _highlight_terms(escaped_text: str, terms: list[str]) -> str:
+    """Wrap matched terms in <mark> inside already-HTML-escaped text."""
+    if not terms:
+        return escaped_text
+    pattern = "|".join(_re.escape(_html.escape(t)) for t in terms if t)
+    if not pattern:
+        return escaped_text
+    return _re.sub(
+        pattern, lambda m: f"<mark>{m.group()}</mark>", escaped_text, flags=_re.IGNORECASE
+    )
+
+
+def _make_snippet(body: str, terms: list[str], window: int = 160) -> str:
+    """Return a highlighted body excerpt centred on the first term match."""
+    escaped = _html.escape(body)
+    pattern = "|".join(_re.escape(_html.escape(t)) for t in terms if t) if terms else ""
+    m = _re.search(pattern, escaped, _re.IGNORECASE) if pattern else None
+
+    if m:
+        start = max(0, m.start() - window // 4)
+        end = min(len(escaped), start + window)
+        excerpt = escaped[start:end]
+        prefix = "…" if start > 0 else ""
+        suffix = "…" if end < len(escaped) else ""
+    else:
+        excerpt = escaped[:window]
+        prefix = ""
+        suffix = "…" if len(escaped) > window else ""
+
+    highlighted = (
+        _re.sub(pattern, lambda mo: f"<mark>{mo.group()}</mark>", excerpt, flags=_re.IGNORECASE)
+        if pattern
+        else excerpt
+    )
+    return prefix + highlighted + suffix
+
+
+def _rank_note(note: dict, terms: list[str]) -> float:
+    """Title matches weight 2×, body matches weight 1×."""
+    title = (note.get("title") or "").lower()
+    body = (note.get("body") or "").lower()
+    score = 0.0
+    for t in terms:
+        tl = t.lower()
+        if tl in title:
+            score += 2.0
+        if tl in body:
+            score += 1.0
+    return score
+
+
+def _search_notes(notes: list[dict], query: str) -> list[dict]:
+    """Filter and rank notes; attach snippet and title_html for rendering."""
+    terms = [t for t in query.split() if t]
+    if not terms:
+        return notes
+
+    results = []
+    for note in notes:
+        rank = _rank_note(note, terms)
+        if rank > 0:
+            snippet = _make_snippet(note.get("body") or "", terms)
+            title_html = _highlight_terms(_html.escape(note.get("title") or ""), terms)
+            results.append({**note, "snippet": snippet, "title_html": title_html, "_rank": rank})
+
+    results.sort(key=lambda n: n["_rank"], reverse=True)
+    for r in results:
+        del r["_rank"]
+    return results
 
 
 def create_app(config: dict | None = None) -> Flask:
@@ -82,11 +156,13 @@ def create_app(config: dict | None = None) -> Flask:
     @app.route("/")
     @login_required
     def home():
-        notes = [
+        user_notes = [
             n for n in app.notes
             if n.get("user_id") is None or n.get("user_id") == current_user.id
         ]
-        return render_template("home.html", notes=notes, username=current_user.username)
+        q = request.args.get("q", "").strip()
+        notes = _search_notes(user_notes, q) if q else user_notes
+        return render_template("home.html", notes=notes, username=current_user.username, q=q)
 
     @app.route("/notes/new", methods=["GET", "POST"])
     @login_required

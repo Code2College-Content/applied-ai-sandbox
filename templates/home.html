@@ -9,10 +9,14 @@
     .meta { color: #666; margin-bottom: 1.5rem; }
     .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
     .note h3 { margin: 0 0 0.5rem; }
+    .snippet { color: #444; font-size: 0.9rem; margin: 0; }
+    mark { background: #fff3b0; border-radius: 2px; padding: 0 2px; }
     a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
     nav { display: flex; justify-content: flex-end; align-items: center; gap: 1rem; margin-bottom: 1rem; font-size: 0.9rem; color: #555; }
     nav form { margin: 0; }
     nav button { background: none; border: none; color: #1a2540; cursor: pointer; font-size: 0.9rem; padding: 0; text-decoration: underline; }
+    .search-bar { display: flex; gap: 0.5rem; margin: 1rem 0 1.5rem; }
+    .search-bar input { flex: 1; padding: 0.5rem 0.75rem; border: 1px solid #ccc; border-radius: 6px; font-size: 1rem; }
   </style>
 </head>
 <body>
@@ -28,16 +32,70 @@
 
   <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
 
-  <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
-  {% if notes %}
-    {% for note in notes %}
-      <div class="note">
-        <h3>{{ note.title }}</h3>
-        <p>{{ note.body }}</p>
-      </div>
-    {% endfor %}
-  {% else %}
-    <p>No notes yet.</p>
-  {% endif %}
+  <div class="search-bar">
+    <input id="search-input" type="search" name="q" placeholder="Search notes…" value="{{ q }}" aria-label="Search notes">
+  </div>
+
+  <h2 style="margin-top: 0;">Your notes ({{ notes|length }}{% if q %} matching "{{ q }}"{% endif %})</h2>
+
+  <div id="notes-list">
+    {% if notes %}
+      {% for note in notes %}
+        <div class="note">
+          <h3>{% if note.title_html %}{{ note.title_html | safe }}{% else %}{{ note.title }}{% endif %}</h3>
+          {% if note.snippet %}
+            <p class="snippet">{{ note.snippet | safe }}</p>
+          {% else %}
+            <p>{{ note.body }}</p>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% elif q %}
+      <p>No notes match "{{ q }}".</p>
+    {% else %}
+      <p>No notes yet.</p>
+    {% endif %}
+  </div>
+
+  <script>
+  (function () {
+    var timer = null;
+    var controller = null;
+    var input = document.getElementById('search-input');
+    if (!input) return;
+
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        var q = input.value;
+        if (controller) { controller.abort(); }
+        controller = new AbortController();
+
+        var url = new URL(window.location.href);
+        if (q.trim()) {
+          url.searchParams.set('q', q.trim());
+        } else {
+          url.searchParams.delete('q');
+        }
+        history.pushState(null, '', url.toString());
+
+        fetch(url.toString(), { signal: controller.signal })
+          .then(function (r) { return r.text(); })
+          .then(function (html) {
+            var doc = new DOMParser().parseFromString(html, 'text/html');
+            var newList = doc.getElementById('notes-list');
+            var oldList = document.getElementById('notes-list');
+            if (newList && oldList) { oldList.innerHTML = newList.innerHTML; }
+            var newHeading = doc.querySelector('h2');
+            var oldHeading = document.querySelector('h2');
+            if (newHeading && oldHeading) { oldHeading.textContent = newHeading.textContent; }
+          })
+          .catch(function (e) {
+            if (e.name !== 'AbortError') { console.error(e); }
+          });
+      }, 300);
+    });
+  }());
+  </script>
 </body>
 </html>
