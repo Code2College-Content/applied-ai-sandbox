@@ -16,10 +16,13 @@
 <body>
   <h1>New note</h1>
 
+  {% if error %}
+    <p class="error">{{ error }}</p>
+  {% endif %}
+
   <form method="POST">
     <label for="title">Title</label>
     <input id="title" name="title" type="text" value="{{ title or '' }}">
-    {# TASK 01 will surface a "Title is required" error message here. #}
 
     <label for="body">Body</label>
     <textarea id="body" name="body" rows="6">{{ body or '' }}</textarea>
