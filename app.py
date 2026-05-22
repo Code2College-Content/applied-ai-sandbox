@@ -18,6 +18,10 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from models import create_user, find_by_id, find_by_username, init_db
 
 
+def parse_tags(tag_string: str) -> list[str]:
+    return [t.strip() for t in tag_string.split(",") if t.strip()]
+
+
 def create_app(config: dict | None = None) -> Flask:
     app = Flask(__name__)
     app.config["SECRET_KEY"] = "sandbox-not-a-real-secret"
@@ -91,7 +95,7 @@ def create_app(config: dict | None = None) -> Flask:
             title = (request.form.get("title") or "").strip()
             body = (request.form.get("body") or "").strip()
             # TASK 01 will add validation here.
-            app.notes.append({"title": title, "body": body, "user_id": current_user.id})
+            app.notes.append({"title": title, "body": body, "user_id": current_user.id, "tags": []})
             return redirect(url_for("home"))
         return render_template("new_note.html")
 
