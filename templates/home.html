@@ -24,6 +24,7 @@
       <div class="note">
         <h3>{{ note.title }}</h3>
         <p>{{ note.body }}</p>
+        {% if note.tags %}<p>Tags: {{ note.tags | join(", ") }}</p>{% endif %}
       </div>
     {% endfor %}
   {% else %}

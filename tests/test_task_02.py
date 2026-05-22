@@ -4,7 +4,7 @@
 def _seed(app, n=2):
     app.notes.clear()
     for i in range(n):
-        app.notes.append({"title": f"Note {i}", "body": f"Body {i}"})
+        app.notes.append({"title": f"Note {i}", "body": f"Body {i}", "tags": []})
 
 
 def test_delete_removes_note(client, app):

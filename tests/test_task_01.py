@@ -19,10 +19,11 @@ def test_empty_body_shows_error(client):
 def test_valid_submit_redirects_and_persists(client, app):
     app.notes.clear()
     r = client.post(
-        "/notes/new", data={"title": "First", "body": "Hello world"},
+        "/notes/new", data={"title": "First", "body": "Hello world", "tags": "python, flask"},
     )
     assert r.status_code in (302, 303)
     assert any(n["title"] == "First" for n in app.notes)
+    assert app.notes[0]["tags"] == ["python", "flask"]
 
 
 def test_invalid_submit_preserves_typed_values(client):
