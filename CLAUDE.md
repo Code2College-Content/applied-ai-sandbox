@@ -24,6 +24,8 @@ python app.py
 
 # Run all tests
 pytest
+# If the pytest command is not available, use:
+python -m pytest
 
 # Run tests for a single task
 pytest tests/test_task_01.py
