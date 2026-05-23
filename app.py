@@ -109,7 +109,7 @@ def create_app(config: dict | None = None) -> Flask:
                     title_error=title_error,
                     body_error=body_error,
                 )
-            note = {"title": title, "body": body}
+            note = {"title": title, "body": body, "tags": []}
             if current_user.is_authenticated:
                 note["user_id"] = current_user.id
             app.notes.append(note)
