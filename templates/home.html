@@ -21,11 +21,22 @@
   <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
   {% if notes %}
     {% for note in notes %}
-      <div class="note">
-        <h3>{{ note.title }}</h3>
-        <p>{{ note.body }}</p>
+    <div class="note">
+      <h3>{{ note.title }}</h3>
+      <p>{{ note.body }}</p>
+      <div style="margin-top: 0.5rem;">
+        {% if note.liked %}
+          <form method="POST" action="{{ url_for('unlike_note', idx=loop.index0) }}" style="display:inline;">
+            <button type="submit" style="background:none;border:none;cursor:pointer;font-size:1rem;">❤️ {{ note.likes }}</button>
+          </form>
+        {% else %}
+          <form method="POST" action="{{ url_for('like_note', idx=loop.index0) }}" style="display:inline;">
+            <button type="submit" style="background:none;border:none;cursor:pointer;font-size:1rem;">🤍 {{ note.likes }}</button>
+          </form>
+        {% endif %}
       </div>
-    {% endfor %}
+    </div>
+  {% endfor %}
   {% else %}
     <p>No notes yet.</p>
   {% endif %}
