@@ -9,7 +9,15 @@ def create_app() -> Flask:
 
     @app.route("/")
     def home():
-        return render_template("home.html", notes=app.notes)
+        q = (request.args.get("q") or "").strip().lower()
+        if q:
+            notes = [
+                n for n in app.notes
+                if q in n["title"].lower() or q in n["body"].lower()
+            ]
+        else:
+            notes = app.notes
+        return render_template("home.html", notes=notes, q=q)
 
     @app.route("/notes/new", methods=["GET", "POST"])
     def new_note():

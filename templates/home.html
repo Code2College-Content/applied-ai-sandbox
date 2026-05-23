@@ -1,33 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Sandbox Notes</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
-    h1 { margin-bottom: 0.25rem; }
-    .meta { color: #666; margin-bottom: 1.5rem; }
-    .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
-    .note h3 { margin: 0 0 0.5rem; }
-    a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
-  </style>
+<meta charset="UTF-8">
+<title>Sandbox Notes</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+h1 { margin-bottom: 0.25rem; }
+.meta { color: #666; margin-bottom: 1.5rem; }
+.note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+.note h3 { margin: 0 0 0.5rem; }
+a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
+.search-bar { display: flex; gap: 0.5rem; margin: 1.5rem 0 1rem; }
+.search-bar input { flex: 1; padding: 0.5rem; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
+.search-bar button { background: #1a2540; color: #fff; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font: inherit; }
+.search-meta { color: #666; font-size: 0.9rem; margin-bottom: 1rem; }
+a.clear { color: #555; font-size: 0.9rem; margin-left: 0.5rem; }
+</style>
 </head>
 <body>
-  <h1>Sandbox Notes</h1>
-  <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
+<h1>Sandbox Notes</h1>
+<p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
+<a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
 
-  <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
+<form class="search-bar" method="GET" action="/">
+  <input type="text" name="q" placeholder="Search notes..." value="{{ q or '' }}">
+  <button type="submit">Search</button>
+</form>
 
-  <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
-  {% if notes %}
-    {% for note in notes %}
-      <div class="note">
-        <h3>{{ note.title }}</h3>
-        <p>{{ note.body }}</p>
-      </div>
-    {% endfor %}
-  {% else %}
-    <p>No notes yet.</p>
-  {% endif %}
+{% if q %}
+<p class="search-meta">
+  {{ notes|length }} result{{ 's' if notes|length != 1 else '' }} for "{{ q }}"
+  <a class="clear" href="/">Clear</a>
+</p>
+{% endif %}
+
+<h2>Your notes ({{ notes|length }})</h2>
+{% if notes %}
+  {% for note in notes %}
+  <div class="note">
+    <h3>{{ note.title }}</h3>
+    <p>{{ note.body }}</p>
+  </div>
+  {% endfor %}
+{% elif q %}
+  <p>No notes match your search.</p>
+{% else %}
+  <p>No notes yet.</p>
+{% endif %}
 </body>
 </html>
