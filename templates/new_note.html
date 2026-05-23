@@ -1,33 +1,37 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>New Note · Sandbox</title>
-  <style>
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
-    label { display: block; margin: 1rem 0 0.25rem; font-weight: 600; }
-    input, textarea { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
-    .actions { margin-top: 1.5rem; }
-    button { background: #1a2540; color: #fff; padding: 0.5rem 1.25rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    a { color: #555; margin-left: 1rem; }
-    .error { color: #b00020; margin-top: 0.25rem; font-size: 0.9rem; }
-  </style>
+<meta charset="UTF-8">
+<title>New Note · Sandbox</title>
+<style>
+body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+label { display: block; margin: 1rem 0 0.25rem; font-weight: 600; }
+input, textarea { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
+.actions { margin-top: 1.5rem; }
+button { background: #1a2540; color: #fff; padding: 0.5rem 1.25rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+a { color: #555; margin-left: 1rem; }
+.error { color: #b00020; margin-top: 0.25rem; font-size: 0.9rem; }
+</style>
 </head>
 <body>
-  <h1>New note</h1>
+<h1>New note</h1>
+<form method="POST">
+  <label for="title">Title</label>
+  <input id="title" name="title" type="text" value="{{ title or '' }}">
+  {% if errors and errors.title %}
+  <p class="error">{{ errors.title }}</p>
+  {% endif %}
 
-  <form method="POST">
-    <label for="title">Title</label>
-    <input id="title" name="title" type="text" value="{{ title or '' }}">
-    {# TASK 01 will surface a "Title is required" error message here. #}
+  <label for="body">Body</label>
+  <textarea id="body" name="body" rows="6">{{ body or '' }}</textarea>
+  {% if errors and errors.body %}
+  <p class="error">{{ errors.body }}</p>
+  {% endif %}
 
-    <label for="body">Body</label>
-    <textarea id="body" name="body" rows="6">{{ body or '' }}</textarea>
-
-    <div class="actions">
-      <button type="submit">Save note</button>
-      <a href="{{ url_for('home') }}">Cancel</a>
-    </div>
-  </form>
+  <div class="actions">
+    <button type="submit">Save note</button>
+    <a href="{{ url_for('home') }}">Cancel</a>
+  </div>
+</form>
 </body>
 </html>
