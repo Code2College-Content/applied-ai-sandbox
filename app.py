@@ -12,6 +12,25 @@ def create_app() -> Flask:
 
     @app.route("/notes/new", methods=["GET", "POST"])
     def new_note():
+        """
+        Handle the creation of a new note.
+
+        This route supports both GET and POST methods:
+        - GET: Renders the form for creating a new note.
+        - POST: Processes the form submission, creates a new note, and adds it to the app.notes list.
+
+        The new note includes the following fields:
+        - title (str): The title of the note, stripped of leading/trailing whitespace.
+        - body (str): The body content of the note, stripped of leading/trailing whitespace.
+        - tags (list[str]): A list of tags, parsed from a comma-separated string and stripped of whitespace.
+        - likes (int): The number of likes for the note, initialized to 0.
+        - liked (bool): Whether the note is liked by the current user, initialized to False.
+
+        Returns:
+            Response: 
+            - If GET: Renders the "new_note.html" template.
+            - If POST: Redirects to the home page after adding the new note.
+        """
         if request.method == "POST":
             title = (request.form.get("title") or "").strip()
             body = (request.form.get("body") or "").strip()
@@ -24,6 +43,18 @@ def create_app() -> Flask:
 
     @app.route("/notes/<int:idx>/like", methods=["POST"])
     def like_note(idx: int):
+        """
+        Like a note by its index.
+
+        This route increments the "likes" count for the note at the given index
+        and sets the "liked" status to True, if the note is not already liked.
+
+        Args:
+            idx (int): The index of the note in the app.notes list.
+
+        Returns:
+            Response: A redirect to the home page.
+        """
         if 0 <= idx < len(app.notes):
             note = app.notes[idx]
             if not note.get("liked", False):
@@ -33,6 +64,19 @@ def create_app() -> Flask:
 
     @app.route("/notes/<int:idx>/unlike", methods=["POST"])
     def unlike_note(idx: int):
+        """
+        Unlike a note by its index.
+
+        This route decrements the "likes" count for the note at the given index
+        and sets the "liked" status to False, if the note is currently liked.
+        The "likes" count will not go below zero.
+
+        Args:
+            idx (int): The index of the note in the app.notes list.
+
+        Returns:
+            Response: A redirect to the home page.
+        """
         if 0 <= idx < len(app.notes):
             note = app.notes[idx]
             if note.get("liked", False):
