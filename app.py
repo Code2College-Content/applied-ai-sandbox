@@ -8,6 +8,16 @@ from __future__ import annotations
 from flask import Flask, render_template, request, redirect, url_for
 
 
+def parse_tags(raw: str) -> list[str]:
+    """Split a comma-separated tag string into a clean list of tags.
+
+    Trims surrounding whitespace from each tag and drops empty entries, so
+    "work, , urgent " -> ["work", "urgent"]. Missing or empty input -> [].
+    Order is preserved and duplicates are kept as-is.
+    """
+    return [tag.strip() for tag in (raw or "").split(",") if tag.strip()]
+
+
 def create_app() -> Flask:
     app = Flask(__name__)
     app.config["SECRET_KEY"] = "sandbox-not-a-real-secret"
@@ -25,10 +35,21 @@ def create_app() -> Flask:
         if request.method == "POST":
             title = (request.form.get("title") or "").strip()
             body = (request.form.get("body") or "").strip()
-            # TASK 01 will add validation here.
-            app.notes.append({"title": title, "body": body})
+            tags_raw = request.form.get("tags") or ""
+            errors: dict[str, str] = {}
+            if not title:
+                errors["title"] = "Title is required"
+            if not body:
+                errors["body"] = "Body is required"
+            if errors:
+                return render_template(
+                    "new_note.html", title=title, body=body, tags=tags_raw, errors=errors
+                )
+            app.notes.append(
+                {"title": title, "body": body, "tags": parse_tags(tags_raw)}
+            )
             return redirect(url_for("home"))
-        return render_template("new_note.html")
+        return render_template("new_note.html", errors={})
 
     # TASK 02 will add a /notes/<idx>/delete route here.
 
