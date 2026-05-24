@@ -26,3 +26,29 @@ def test_parse_tags_none_returns_empty_list():
 
 def test_parse_tags_preserves_order_and_duplicates():
     assert parse_tags("b, a, a") == ["b", "a", "a"]
+
+
+# --- Task 3: tags wired into the new-note form ---
+
+
+def test_post_stores_parsed_tags(client, app):
+    app.notes.clear()
+    r = client.post(
+        "/notes/new", data={"title": "T", "body": "B", "tags": "work, urgent"}
+    )
+    assert r.status_code in (302, 303)
+    assert app.notes[-1]["tags"] == ["work", "urgent"]
+
+
+def test_post_empty_tags_stores_empty_list(client, app):
+    app.notes.clear()
+    client.post("/notes/new", data={"title": "T", "body": "B", "tags": ""})
+    assert app.notes[-1]["tags"] == []
+
+
+def test_failed_submit_keeps_typed_tags(client):
+    r = client.post(
+        "/notes/new", data={"title": "", "body": "B", "tags": "work, urgent"}
+    )
+    assert r.status_code == 200
+    assert b"work, urgent" in r.data
