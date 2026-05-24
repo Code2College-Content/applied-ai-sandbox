@@ -35,10 +35,18 @@ def create_app() -> Flask:
         if request.method == "POST":
             title = (request.form.get("title") or "").strip()
             body = (request.form.get("body") or "").strip()
-            # TASK 01 will add validation here.
+            errors: dict[str, str] = {}
+            if not title:
+                errors["title"] = "Title is required"
+            if not body:
+                errors["body"] = "Body is required"
+            if errors:
+                return render_template(
+                    "new_note.html", title=title, body=body, errors=errors
+                )
             app.notes.append({"title": title, "body": body, "tags": []})
             return redirect(url_for("home"))
-        return render_template("new_note.html")
+        return render_template("new_note.html", errors={})
 
     # TASK 02 will add a /notes/<idx>/delete route here.
 
