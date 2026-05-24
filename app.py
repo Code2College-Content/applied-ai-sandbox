@@ -8,6 +8,16 @@ from __future__ import annotations
 from flask import Flask, render_template, request, redirect, url_for
 
 
+def parse_tags(raw: str) -> list[str]:
+    """Split a comma-separated tag string into a clean list of tags.
+
+    Trims surrounding whitespace from each tag and drops empty entries, so
+    "work, , urgent " -> ["work", "urgent"]. Missing or empty input -> [].
+    Order is preserved and duplicates are kept as-is.
+    """
+    return [tag.strip() for tag in (raw or "").split(",") if tag.strip()]
+
+
 def create_app() -> Flask:
     app = Flask(__name__)
     app.config["SECRET_KEY"] = "sandbox-not-a-real-secret"
