@@ -8,7 +8,9 @@
     h1 { margin-bottom: 0.25rem; }
     .meta { color: #666; margin-bottom: 1.5rem; }
     .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
-    .note h3 { margin: 0 0 0.5rem; }
+    .note h3 { margin: 0 0 0.25rem; }
+    .chips { margin-bottom: 0.4rem; }
+    .chip { display: inline-block; background: #e8eaf0; color: #1a2540; padding: 0.15rem 0.55rem; border-radius: 12px; font-size: 0.8rem; margin: 0.1rem 0.2rem 0 0; }
     a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
   </style>
 </head>
@@ -23,7 +25,18 @@
     {% for note in notes %}
       <div class="note">
         <h3>{{ note.title }}</h3>
+        {% if note.tags %}
+        <div class="chips">
+          {% for tag in note.tags %}<span class="chip">{{ tag }}</span>{% endfor %}
+        </div>
+        {% endif %}
+        {% if note.date %}
+        <p class="note-date" style="color:#666; font-size:0.85rem; margin: 0.1rem 0 0.3rem;">📅 {{ note.date }}</p>
+        {% endif %}
         <p>{{ note.body }}</p>
+        <form method="POST" action="{{ url_for('delete_note', idx=loop.index0) }}" style="margin-top:0.5rem">
+          <button type="submit">Delete</button>
+        </form>
       </div>
     {% endfor %}
   {% else %}

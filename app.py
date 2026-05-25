@@ -5,7 +5,15 @@ describe exactly what "done" means.
 """
 from __future__ import annotations
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, abort
+
+
+def parse_tags(raw: str) -> list[str]:
+    """Split a comma-separated string into a clean list of tag strings.
+
+    Trims whitespace from each token and drops empty values.
+    """
+    return [tag for tag in (t.strip() for t in raw.split(",")) if tag]
 
 
 def create_app() -> Flask:
@@ -25,12 +33,26 @@ def create_app() -> Flask:
         if request.method == "POST":
             title = (request.form.get("title") or "").strip()
             body = (request.form.get("body") or "").strip()
+            if not title:
+                return render_template("new_note.html", error="Title is required",
+                title=request.form.get("title"), body=request.form.get("body"))
+            if not body:
+                return render_template("new_note.html", error="Body is required",
+                title=request.form.get("title"), body=request.form.get("body"))
             # TASK 01 will add validation here.
-            app.notes.append({"title": title, "body": body})
+            tags = parse_tags(request.form.get("tags") or "")
+            date = (request.form.get("date") or "").strip()
+            app.notes.append({"title": title, "body": body, "tags": tags, "date": date or None})
             return redirect(url_for("home"))
         return render_template("new_note.html")
 
-    # TASK 02 will add a /notes/<idx>/delete route here.
+    @app.route("/notes/<int:idx>/delete", methods=["POST"])
+    def delete_note(idx):
+        try:
+            app.notes.pop(idx)
+        except IndexError:
+            abort(404)
+        return redirect(url_for("home"))
 
     return app
 
