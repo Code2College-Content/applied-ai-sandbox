@@ -8,6 +8,14 @@ from __future__ import annotations
 from flask import Flask, render_template, request, redirect, url_for
 
 
+def parse_tags(raw: str) -> list[str]:
+    """Split a comma-separated string into a clean list of tag strings.
+
+    Trims whitespace from each token and drops empty values.
+    """
+    return [tag for tag in (t.strip() for t in raw.split(",")) if tag]
+
+
 def create_app() -> Flask:
     app = Flask(__name__)
     app.config["SECRET_KEY"] = "sandbox-not-a-real-secret"
@@ -32,7 +40,8 @@ def create_app() -> Flask:
                 return render_template("new_note.html", error="Body is required",
                 title=request.form.get("title"), body=request.form.get("body"))
             # TASK 01 will add validation here.
-            app.notes.append({"title": title, "body": body, "tags": []})
+            tags = parse_tags(request.form.get("tags") or "")
+            app.notes.append({"title": title, "body": body, "tags": tags})
             return redirect(url_for("home"))
         return render_template("new_note.html")
 
