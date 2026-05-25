@@ -27,6 +27,9 @@
     <label for="tags">Tags <span style="font-weight:400;color:#666">(comma-separated, optional)</span></label>
     <input id="tags" name="tags" type="text" placeholder="e.g. work, urgent">
 
+    <label for="date">Date <span style="font-weight:400;color:#666">(optional)</span></label>
+    <input id="date" name="date" type="date" value="{{ date or '' }}">
+
     <div class="actions">
       <button type="submit">Save note</button>
       <a href="{{ url_for('home') }}">Cancel</a>

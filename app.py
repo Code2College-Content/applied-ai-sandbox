@@ -5,7 +5,7 @@ describe exactly what "done" means.
 """
 from __future__ import annotations
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, abort
 
 
 def parse_tags(raw: str) -> list[str]:
@@ -41,11 +41,18 @@ def create_app() -> Flask:
                 title=request.form.get("title"), body=request.form.get("body"))
             # TASK 01 will add validation here.
             tags = parse_tags(request.form.get("tags") or "")
-            app.notes.append({"title": title, "body": body, "tags": tags})
+            date = (request.form.get("date") or "").strip()
+            app.notes.append({"title": title, "body": body, "tags": tags, "date": date or None})
             return redirect(url_for("home"))
         return render_template("new_note.html")
 
-    # TASK 02 will add a /notes/<idx>/delete route here.
+    @app.route("/notes/<int:idx>/delete", methods=["POST"])
+    def delete_note(idx):
+        try:
+            app.notes.pop(idx)
+        except IndexError:
+            abort(404)
+        return redirect(url_for("home"))
 
     return app
 

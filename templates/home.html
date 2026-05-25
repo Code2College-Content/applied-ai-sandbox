@@ -30,7 +30,13 @@
           {% for tag in note.tags %}<span class="chip">{{ tag }}</span>{% endfor %}
         </div>
         {% endif %}
+        {% if note.date %}
+        <p class="note-date" style="color:#666; font-size:0.85rem; margin: 0.1rem 0 0.3rem;">📅 {{ note.date }}</p>
+        {% endif %}
         <p>{{ note.body }}</p>
+        <form method="POST" action="{{ url_for('delete_note', idx=loop.index0) }}" style="margin-top:0.5rem">
+          <button type="submit">Delete</button>
+        </form>
       </div>
     {% endfor %}
   {% else %}
