@@ -44,5 +44,9 @@ pytest tests/test_task_01.py
 - Always read the task file before writing code.
 - Plan before implementing — ask Claude for a plan first.
 - Run `pytest` after each substantive change.
-- If Claude proposes editing a test to "make it pass," push back. The
-  tests are the spec.
+- If Claude proposes editing a test to "make it pass," push back. The tests are the spec.
+
+## Auth
+- Use Flask-Login + werkzeug.security for password hashing.
+- Ask where to create files 
+- For other features, ask first
