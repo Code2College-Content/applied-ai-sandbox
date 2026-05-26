@@ -4,30 +4,270 @@
   <meta charset="UTF-8">
   <title>Sandbox Notes</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    /*
+     * CSS custom properties (variables) define the colour palette once.
+     * Every colour in the stylesheet references a variable like var(--bg)
+     * rather than a hardcoded hex value. This means swapping between light
+     * and dark mode only requires redefining the variables — all the rules
+     * that use them update automatically.
+     */
+    :root {
+      /* Light mode values — applied by default */
+      --bg: #ffffff;
+      --text: #000000;
+      --text-muted: #666;
+      --border: #ddd;
+      --surface: #ffffff;   /* card / panel background */
+      --btn-bg: #1a2540;
+      --btn-text: #fff;
+      --toggle-bg: #e2e8f0; /* pill / chip background */
+      --toggle-text: #1a2540;
+    }
+    html.dark {
+      /* Dark mode values — applied when the <html> element has class="dark".
+         JavaScript toggles this class based on the user's preference. */
+      --bg: #0f1117;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --border: #2d3748;
+      --surface: #1a1d2e;
+      --btn-bg: #3b82f6;
+      --btn-text: #fff;
+      --toggle-bg: #1e293b;
+      --toggle-text: #93c5fd;
+    }
+
+    /* border-box makes width/height calculations include padding and border,
+       preventing elements from unexpectedly overflowing their containers. */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 720px;     /* readable line length — prevents very wide layouts */
+      margin: 2rem auto;    /* centred horizontally with breathing room at top */
+      padding: 0 1rem;      /* side padding on small screens */
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.2s, color 0.2s; /* smooth colour change on theme toggle */
+    }
+
     h1 { margin-bottom: 0.25rem; }
-    .meta { color: #666; margin-bottom: 1.5rem; }
-    .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+    .meta { color: var(--text-muted); margin-bottom: 1.5rem; }
+
+    /* Each note is displayed as a card with a subtle border and rounded corners. */
+    .note {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      transition: background 0.2s, border-color 0.2s;
+    }
     .note h3 { margin: 0 0 0.5rem; }
-    a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
+
+    /* .btn is the primary action button style (used for "New note"). */
+    a.btn {
+      display: inline-block;      /* allows padding without line-break weirdness */
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      padding: 0.5rem 1rem;
+      border-radius: 6px;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+
+    /* The dark/light mode toggle is fixed in the top-right corner so it's
+       always accessible regardless of scroll position. */
+    #theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--toggle-bg);
+      color: var(--toggle-text);
+      border: 1px solid var(--border);
+      border-radius: 20px;       /* pill shape */
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+
+    /* The filter bar holds the "All" link plus one link per unique tag.
+       flex-wrap allows it to flow onto multiple lines on narrow screens. */
+    .filter-bar { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 1rem 0 1.25rem; }
+    .filter-bar a {
+      padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.8rem; font-weight: 600;
+      text-decoration: none; background: var(--toggle-bg); color: var(--toggle-text);
+      border: 1px solid var(--border);
+    }
+    /* The active filter link uses the primary button colour so the user can
+       clearly see which filter is currently applied. */
+    .filter-bar a.active { background: var(--btn-bg); color: var(--btn-text); border-color: var(--btn-bg); }
+
+    /* Tag chips are display-only spans that appear on each note card.
+       They are NOT links — the filter bar is the navigation element.
+       Keeping display and navigation separate avoids confusing duplication. */
+    .tags  { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.5rem; }
+    .chip  {
+      font-size: 0.75rem; padding: 0.15rem 0.6rem; border-radius: 12px;
+      background: var(--toggle-bg); color: var(--toggle-text);
+      border: 1px solid var(--border);
+    }
+
+    .note { position: relative; }
+    .star-btn {
+      position: absolute; top: 0.6rem; right: 0.6rem;
+      background: none; border: none; cursor: pointer;
+      font-size: 1.2rem; color: var(--text-muted);
+      padding: 0; line-height: 1;
+    }
+    .star-btn.starred { color: #f59e0b; }
+    .starred-toggle {
+      padding: 0.3rem 0.75rem; border-radius: 20px; font-size: 0.8rem;
+      font-weight: 600; cursor: pointer; border: 1px solid var(--border);
+      background: var(--toggle-bg); color: var(--toggle-text);
+    }
+    .starred-toggle.active { background: var(--btn-bg); color: var(--btn-text); border-color: var(--btn-bg); }
+    .empty-state { color: var(--text-muted); margin-top: 1rem; }
   </style>
+
+  <script>
+    /*
+     * This script runs synchronously in <head>, BEFORE the page body paints.
+     * That's intentional: applying the dark class here prevents the "flash of
+     * wrong theme" where the page briefly renders in light mode before JS runs.
+     * If this were at the bottom of <body>, users would see a flicker on load.
+     */
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
 </head>
 <body>
+  <!-- Fixed theme toggle button — label text is set dynamically by applyLabel() below -->
+  <button id="theme-toggle" onclick="toggleTheme()"></button>
+
   <h1>Sandbox Notes</h1>
   <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
 
+  <!-- url_for('new_note') generates the URL for the new_note route in app.py.
+       Using url_for instead of a hardcoded "/notes/new" means links auto-update
+       if the route path ever changes. -->
   <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
 
+  {# The filter bar is only rendered when there is at least one tag to show.
+     If no notes have tags yet, showing an empty bar would be confusing. #}
+  {% if all_tags %}
+  <div class="filter-bar">
+    {# "All" clears the filter — links to the bare home URL with no ?tag= param.
+       The 'active' class is added when no tag filter is active (active_tag == ""). #}
+    <a class="filter{% if not active_tag %} active{% endif %}" href="{{ url_for('home') }}">All</a>
+
+    {# One link per unique tag, sorted alphabetically (sorted in app.py).
+       url_for('home', tag=t) generates "/?tag=work", "/?tag=urgent", etc.
+       The 'active' class highlights whichever tag is currently selected. #}
+    {% for t in all_tags %}
+      <a class="filter{% if active_tag == t %} active{% endif %}" href="{{ url_for('home', tag=t) }}">{{ t }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {# notes|length is a Jinja filter — it calls len(notes) on the passed list.
+     When a tag filter is active, this count reflects the filtered subset, not
+     all notes, so the user knows how many results match. #}
+  <button class="starred-toggle" id="starred-toggle" onclick="toggleStarredFilter()">★ Starred</button>
+
   <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
+
   {% if notes %}
     {% for note in notes %}
-      <div class="note">
+      <div class="note" data-starred="{{ 'true' if note.get('starred') else 'false' }}" data-idx="{{ loop.index0 }}">
+        <button
+          class="star-btn{% if note.get('starred') %} starred{% endif %}"
+          aria-label="{{ 'Unstar note' if note.get('starred') else 'Star note' }}"
+          onclick="starNote(this)"
+        >{{ '★' if note.get('starred') else '☆' }}</button>
         <h3>{{ note.title }}</h3>
         <p>{{ note.body }}</p>
+
+        {% if note.get('tags') %}
+          <div class="tags">
+            {% for t in note.tags %}
+              <span class="chip">{{ t }}</span>
+            {% endfor %}
+          </div>
+        {% endif %}
       </div>
     {% endfor %}
   {% else %}
-    <p>No notes yet.</p>
+    <p id="no-notes-msg">No notes yet.</p>
   {% endif %}
+  <p id="no-starred-msg" class="empty-state" style="display:none">
+    No starred notes yet. Click ★ on any note to save it here.
+  </p>
+
+  <script>
+    const btn = document.getElementById('theme-toggle');
+
+    /* Sets the button label to match the CURRENT theme so users know what
+       clicking it will do ("Dark mode" when in light, "Light mode" when in dark). */
+    function applyLabel() {
+      btn.textContent = document.documentElement.classList.contains('dark') ? 'Light mode' : 'Dark mode';
+    }
+
+    function toggleTheme() {
+      /* classList.toggle returns true if the class was added (now dark), false if removed. */
+      const dark = document.documentElement.classList.toggle('dark');
+      /* Persist the preference in localStorage so it survives page reloads.
+         localStorage stores key-value strings and is available across sessions. */
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      applyLabel();
+    }
+
+    /* Set the initial label on page load so it reflects the theme applied by
+       the inline <head> script above. */
+    applyLabel();
+
+    let starredFilterActive = false;
+
+    function starNote(btn) {
+      const card = btn.closest('.note');
+      const idx = card.dataset.idx;
+      fetch(`/notes/${idx}/star`, { method: 'PATCH' })
+        .then(r => r.json())
+        .then(data => {
+          const isStarred = data.starred;
+          card.dataset.starred = isStarred ? 'true' : 'false';
+          btn.textContent = isStarred ? '★' : '☆';
+          btn.classList.toggle('starred', isStarred);
+          btn.setAttribute('aria-label', isStarred ? 'Unstar note' : 'Star note');
+          if (starredFilterActive) applyStarredFilter();
+        });
+    }
+
+    function applyStarredFilter() {
+      const cards = document.querySelectorAll('.note');
+      let visibleCount = 0;
+      cards.forEach(card => {
+        const show = !starredFilterActive || card.dataset.starred === 'true';
+        card.style.display = show ? '' : 'none';
+        if (show) visibleCount++;
+      });
+      const noStarredMsg = document.getElementById('no-starred-msg');
+      const noNotesMsg = document.getElementById('no-notes-msg');
+      if (noStarredMsg) noStarredMsg.style.display = (starredFilterActive && visibleCount === 0) ? '' : 'none';
+      if (noNotesMsg) noNotesMsg.style.display = (!starredFilterActive && visibleCount === 0) ? '' : 'none';
+      const count = document.querySelectorAll('.note[data-starred="true"]').length;
+      document.getElementById('starred-toggle').textContent =
+        starredFilterActive ? `★ Starred (${count})` : '★ Starred';
+    }
+
+    function toggleStarredFilter() {
+      starredFilterActive = !starredFilterActive;
+      document.getElementById('starred-toggle').classList.toggle('active', starredFilterActive);
+      applyStarredFilter();
+    }
+  </script>
 </body>
 </html>

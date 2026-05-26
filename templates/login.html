@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Log in · Sandbox Notes</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #000000;
+      --text-muted: #555;
+      --border: #ddd;
+      --input-bg: #ffffff;
+      --btn-bg: #1a2540;
+      --btn-text: #fff;
+      --toggle-bg: #e2e8f0;
+      --toggle-text: #1a2540;
+      --error: #b00020;
+    }
+    html.dark {
+      --bg: #0f1117;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --border: #2d3748;
+      --input-bg: #1e293b;
+      --btn-bg: #3b82f6;
+      --btn-text: #fff;
+      --toggle-bg: #1e293b;
+      --toggle-text: #93c5fd;
+      --error: #f87171;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 400px;
+      margin: 4rem auto;
+      padding: 0 1rem;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.2s, color 0.2s;
+    }
+    h1 { margin-bottom: 0.25rem; }
+    label { display: block; margin: 1rem 0 0.25rem; font-weight: 600; }
+    input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font: inherit;
+      background: var(--input-bg);
+      color: var(--text);
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    button.submit {
+      margin-top: 1.5rem;
+      width: 100%;
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      padding: 0.6rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background 0.2s;
+    }
+    .error { color: var(--error); margin-top: 0.75rem; font-size: 0.9rem; }
+    .foot { margin-top: 1rem; text-align: center; color: var(--text-muted); }
+    .foot a { color: var(--btn-bg); }
+    #theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--toggle-bg);
+      color: var(--toggle-text);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
+  </style>
+  <script>
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+</head>
+<body>
+  <button id="theme-toggle" onclick="toggleTheme()"></button>
+
+  <h1>Log in</h1>
+
+  {% if error %}
+    <p class="error">{{ error }}</p>
+  {% endif %}
+
+  <form method="POST">
+    <label for="username">Username</label>
+    <input id="username" name="username" type="text" autocomplete="username" value="{{ username or '' }}" required>
+
+    <label for="password">Password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+    <button class="submit" type="submit">Log in</button>
+  </form>
+
+  <p class="foot">No account? <a href="{{ url_for('register') }}">Register</a></p>
+
+  <script>
+    const btn = document.getElementById('theme-toggle');
+    function applyLabel() {
+      btn.textContent = document.documentElement.classList.contains('dark') ? 'Light mode' : 'Dark mode';
+    }
+    function toggleTheme() {
+      const dark = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      applyLabel();
+    }
+    applyLabel();
+  </script>
+</body>
+</html>

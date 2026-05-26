@@ -4,30 +4,196 @@
   <meta charset="UTF-8">
   <title>New Note · Sandbox</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+    /*
+     * CSS custom properties (variables) define the colour palette once.
+     * Redefining these under html.dark is all that's needed to swap themes —
+     * every rule that uses var(--x) updates automatically.
+     */
+    :root {
+      /* Light mode values */
+      --bg: #ffffff;
+      --text: #000000;
+      --text-muted: #666;
+      --border: #ddd;
+      --surface: #ffffff;
+      --input-bg: #ffffff;  /* input fields match page background in light mode */
+      --btn-bg: #1a2540;
+      --btn-text: #fff;
+      --toggle-bg: #e2e8f0;
+      --toggle-text: #1a2540;
+      --error: #b00020;     /* accessible red for inline validation messages */
+    }
+    html.dark {
+      /* Dark mode values — activated by adding class="dark" to <html> */
+      --bg: #0f1117;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --border: #2d3748;
+      --surface: #1a1d2e;
+      --input-bg: #1e293b;  /* slightly lighter than page bg so inputs are visible */
+      --btn-bg: #3b82f6;
+      --btn-text: #fff;
+      --toggle-bg: #1e293b;
+      --toggle-text: #93c5fd;
+      --error: #f87171;     /* softer red for dark backgrounds — better contrast */
+    }
+
+    /* box-sizing: border-box makes width/height include padding and border,
+       so a 100%-wide input doesn't overflow its container. */
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      max-width: 720px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+      background: var(--bg);
+      color: var(--text);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* display:block puts each label on its own line above its field. */
     label { display: block; margin: 1rem 0 0.25rem; font-weight: 600; }
-    input, textarea { width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
+
+    /* One rule covers both <input> and <textarea> since they share the same
+       visual style. font: inherit ensures the textarea uses the same font as
+       the page rather than the browser's default monospace. */
+    input, textarea {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font: inherit;
+      background: var(--input-bg);
+      color: var(--text);
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+
     .actions { margin-top: 1.5rem; }
-    button { background: #1a2540; color: #fff; padding: 0.5rem 1.25rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-    a { color: #555; margin-left: 1rem; }
-    .error { color: #b00020; margin-top: 0.25rem; font-size: 0.9rem; }
+
+    /* The save button uses class="save" rather than a bare button rule so
+       that other buttons (e.g. theme toggle) aren't accidentally styled the same way. */
+    button.save {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      padding: 0.5rem 1.25rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    a { color: var(--text-muted); margin-left: 1rem; }
+
+    /* Inline error messages appear just below the field they relate to.
+       font-size: 0.9rem keeps them visually subordinate to the label. */
+    .error { color: var(--error); margin-top: 0.25rem; font-size: 0.9rem; }
+
+    /* Fixed theme toggle — always accessible regardless of scroll position. */
+    #theme-toggle {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      background: var(--toggle-bg);
+      color: var(--toggle-text);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, border-color 0.2s;
+    }
   </style>
+
+  <script>
+    /*
+     * Apply the saved theme BEFORE the page body renders to avoid a flash of
+     * the wrong theme. Running this in <head> (not at the bottom of <body>)
+     * is the key — the class is set before the browser paints anything.
+     */
+    if (localStorage.getItem('theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
 </head>
 <body>
+  <!-- Theme toggle label is populated by applyLabel() in the script below -->
+  <button id="theme-toggle" onclick="toggleTheme()"></button>
+
   <h1>New note</h1>
 
+  <!--
+    method="POST" sends form data in the request body rather than the URL.
+    There is no action="" attribute, so the form posts to the current URL
+    (/notes/new), which the route handles in its POST branch.
+  -->
   <form method="POST">
+
+    <!--
+      The 'for' attribute on <label> must match the 'id' on the input.
+      This links them accessibly: clicking the label focuses the input,
+      and screen readers announce the label when the input is focused.
+    -->
     <label for="title">Title</label>
+    <!--
+      value="{{ title or '' }}" re-populates this field after a failed submission.
+      Flask passes back the user's typed value so they don't have to retype it.
+      'title or ""' guards against None (when the route renders a fresh GET form
+      with no title variable passed in).
+    -->
     <input id="title" name="title" type="text" value="{{ title or '' }}">
-    {# TASK 01 will surface a "Title is required" error message here. #}
+    {# Only render the error paragraph if an error message exists for this field. #}
+    {% if title_error %}<p class="error">{{ title_error }}</p>{% endif %}
 
     <label for="body">Body</label>
+    <!--
+      Textarea content goes between the opening and closing tags, NOT in a value=""
+      attribute (unlike <input>). The same re-population pattern applies.
+    -->
     <textarea id="body" name="body" rows="6">{{ body or '' }}</textarea>
+    {% if body_error %}<p class="error">{{ body_error }}</p>{% endif %}
+
+    <!--
+      Tags are optional — no validation error is shown if the field is left blank.
+      The placeholder text shows users the expected format without taking up space.
+      value="{{ tags or '' }}" receives the raw comma-separated string that was
+      submitted (e.g. "work, urgent") — not a parsed list. This is intentional:
+      the input value must be a plain string, and we want to echo back exactly
+      what the user typed rather than a reformatted version.
+    -->
+    <label for="tags">Tags <span style="font-weight:400; color:var(--text-muted)">(comma-separated, optional)</span></label>
+    <input id="tags" name="tags" type="text" value="{{ tags or '' }}" placeholder="e.g. work, urgent">
 
     <div class="actions">
-      <button type="submit">Save note</button>
+      <button class="save" type="submit">Save note</button>
+      <!-- Cancel navigates back to home without saving. url_for generates
+           the correct URL even if the route path changes in the future. -->
       <a href="{{ url_for('home') }}">Cancel</a>
     </div>
   </form>
+
+  <script>
+    const btn = document.getElementById('theme-toggle');
+
+    /* Updates the button label to reflect what clicking it will DO next:
+       show "Dark mode" when currently in light mode, and vice versa. */
+    function applyLabel() {
+      btn.textContent = document.documentElement.classList.contains('dark') ? 'Light mode' : 'Dark mode';
+    }
+
+    function toggleTheme() {
+      const dark = document.documentElement.classList.toggle('dark');
+      /* Persist the choice in localStorage so the preference carries over
+         to the next page load and to other pages in the same origin. */
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+      applyLabel();
+    }
+
+    /* Sync the button label with the theme that was applied by the <head>
+       script — must run after the DOM is ready (which it is, being at end of body). */
+    applyLabel();
+  </script>
 </body>
 </html>
