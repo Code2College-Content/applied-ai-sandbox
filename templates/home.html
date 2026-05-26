@@ -16,6 +16,12 @@
   <h1>Sandbox Notes</h1>
   <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
 
+  {% if user %}
+    <p>Logged in as <strong>{{ user }}</strong>. <a href="{{ url_for('logout') }}">Logout</a></p>
+  {% else %}
+    <p><a href="{{ url_for('login') }}">Login</a> to attach your name to notes.</p>
+  {% endif %}
+
   <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
 
   <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
@@ -24,6 +30,12 @@
       <div class="note">
         <h3>{{ note.title }}</h3>
         <p>{{ note.body }}</p>
+        {% if note.author %}
+          <p><em>by {{ note.author }}</em></p>
+        {% endif %}
+        <form method="POST" action="{{ url_for('delete_note', idx=loop.index0) }}">
+          <button type="submit">Delete</button>
+        </form>
       </div>
     {% endfor %}
   {% else %}
