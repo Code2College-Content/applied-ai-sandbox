@@ -167,13 +167,23 @@ def create_app(config: dict | None = None) -> Flask:
     @app.route("/notes/new", methods=["GET", "POST"])
     @login_required
     def new_note():
+        error = None
+        title = ""
+        body = ""
+
         if request.method == "POST":
             title = (request.form.get("title") or "").strip()
             body = (request.form.get("body") or "").strip()
-            # TASK 01 will add validation here.
-            app.notes.append({"title": title, "body": body, "user_id": current_user.id, "tags": []})
-            return redirect(url_for("home"))
-        return render_template("new_note.html")
+
+            if not title:
+                error = "Title is required"
+            elif not body:
+                error = "Body is required"
+            else:
+                app.notes.append({"title": title, "body": body, "user_id": current_user.id, "tags": []})
+                return redirect(url_for("home"))
+
+        return render_template("new_note.html", error=error, title=title, body=body)
 
     # TASK 02 will add a /notes/<idx>/delete route here.
 
