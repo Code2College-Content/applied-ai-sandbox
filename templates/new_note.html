@@ -29,6 +29,9 @@
       <p class="error">{{ errors.body }}</p>
     {% endif %}
 
+    <label for="tags">Tags <span style="font-weight:normal;color:#666;">(comma-separated)</span></label>
+    <input id="tags" name="tags" type="text" value="{{ tags_raw or '' }}" placeholder="e.g. candy, drinks">
+
     <div class="actions">
       <button type="submit">Save note</button>
       <a href="{{ url_for('home') }}">Cancel</a>

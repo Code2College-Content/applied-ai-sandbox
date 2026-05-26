@@ -46,23 +46,26 @@ def create_app() -> Flask:
     def new_note():
         title = ""
         body = ""
+        tags_raw = ""
         errors: dict[str, str] = {}
 
         if request.method == "POST":
             title = (request.form.get("title") or "").strip()
             body = (request.form.get("body") or "").strip()
+            tags_raw = (request.form.get("tags") or "").strip()
             if not title:
                 errors["title"] = "Title is required"
             if not body:
                 errors["body"] = "Body is required"
             if not errors:
-                note = {"title": title, "body": body, "tags": []}
+                tags = [t.strip() for t in tags_raw.split(",") if t.strip()]
+                note = {"title": title, "body": body, "tags": tags}
                 if app.user:
                     note["author"] = app.user
                 app.notes.append(note)
                 return redirect(url_for("home"))
 
-        return render_template("new_note.html", title=title, body=body, errors=errors)
+        return render_template("new_note.html", title=title, body=body, tags_raw=tags_raw, errors=errors)
 
     @app.route("/notes/<int:idx>/delete", methods=["POST"])
     def delete_note(idx: int):
