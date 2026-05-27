@@ -22,7 +22,15 @@ def create_app() -> Flask:
 
     @app.route("/")
     def home():
-        return render_template("home.html", notes=app.notes, user=app.user)
+        q = request.args.get("q", "").strip()
+        if q:
+            notes = [
+                n for n in app.notes
+                if q.lower() in n["title"].lower() or q.lower() in n["body"].lower()
+            ]
+        else:
+            notes = app.notes
+        return render_template("home.html", notes=notes, user=app.user, q=q)
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
