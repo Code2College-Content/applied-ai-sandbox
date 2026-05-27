@@ -30,7 +30,7 @@ def create_app() -> Flask:
             ]
         else:
             notes = app.notes
-        return render_template("home.html", notes=notes, user=app.user, q=q)
+        return render_template("home.html", notes=notes, user=app.user, q=q, total=len(app.notes))
 
     @app.route("/login", methods=["GET", "POST"])
     def login():
