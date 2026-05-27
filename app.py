@@ -16,9 +16,30 @@ def create_app() -> Flask:
     # fine for practice. Real apps use a database.
     app.notes: list[dict] = []  # type: ignore[attr-defined]
 
+    def _normalize_search_query(query: str) -> str:
+        """Normalize the search query for case-insensitive note matching."""
+        return query.strip().lower()
+
     @app.route("/")
     def home():
-        return render_template("home.html", notes=app.notes)
+        raw_query = request.args.get("q", "") or ""
+        search_query = _normalize_search_query(raw_query)
+
+        if search_query:
+            filtered_notes = [
+                note
+                for note in app.notes
+                if search_query in note["title"].lower()
+                or search_query in note["body"].lower()
+            ]
+        else:
+            filtered_notes = app.notes
+
+        return render_template(
+            "home.html",
+            notes=filtered_notes,
+            query=raw_query.strip(),
+        )
 
     @app.route("/notes/new", methods=["GET", "POST"])
     def new_note():
