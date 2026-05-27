@@ -9,11 +9,19 @@
     .meta { color: #666; margin-bottom: 1.5rem; }
     .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
     .note h3 { margin: 0 0 0.5rem; }
+    .tags { margin-top: 0.5rem; }
+    .tag { display: inline-block; background: #eef0f5; color: #1a2540; font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.55rem; border-radius: 999px; margin-right: 0.3rem; }
     a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
   </style>
 </head>
 <body>
-  <h1>Sandbox Notes</h1>
+  <div style="display:flex; justify-content:space-between; align-items:baseline;">
+    <h1>Sandbox Notes</h1>
+    <form method="POST" action="{{ url_for('logout') }}" style="margin:0;">
+      <span style="color:#666; font-size:0.9rem; margin-right:0.5rem;">{{ username }}</span>
+      <button type="submit" style="background:none; border:1px solid #ccc; border-radius:6px; padding:0.3rem 0.75rem; cursor:pointer; font-size:0.85rem;">Log out</button>
+    </form>
+  </div>
   <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
 
   <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
@@ -24,6 +32,11 @@
       <div class="note">
         <h3>{{ note.title }}</h3>
         <p>{{ note.body }}</p>
+        {% if note.tags %}
+          <div class="tags">
+            {% for tag in note.tags %}<span class="tag">{{ tag }}</span>{% endfor %}
+          </div>
+        {% endif %}
       </div>
     {% endfor %}
   {% else %}

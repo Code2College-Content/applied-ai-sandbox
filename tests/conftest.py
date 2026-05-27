@@ -11,4 +11,8 @@ def app():
 
 @pytest.fixture
 def client(app):
-    return app.test_client()
+    """A test client pre-logged-in as the test user."""
+    c = app.test_client()
+    # Register and log in a test user so auth-protected routes work in tests.
+    c.post("/register", data={"username": "testuser", "password": "testpass"})
+    return c
