@@ -16,18 +16,43 @@
   <h1>Sandbox Notes</h1>
   <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
 
+  {% if user %}
+    <p>Logged in as <strong>{{ user }}</strong>. <a href="{{ url_for('logout') }}">Logout</a></p>
+  {% else %}
+    <p><a href="{{ url_for('login') }}">Login</a> to attach your name to notes.</p>
+  {% endif %}
+
   <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
 
-  <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
+  <form method="GET" action="{{ url_for('home') }}" style="margin-top:1.5rem;">
+    <input name="q" type="search" value="{{ q or '' }}" placeholder="Search notes…" aria-label="Search notes" style="padding:0.4rem 0.6rem; width:240px;">
+    <button type="submit">Search</button>
+    {% if q %}<a href="{{ url_for('home') }}">Clear</a>{% endif %}
+  </form>
+
+  <h2 style="margin-top: 2rem;">{% if q %}Showing {{ notes|length }} of {{ total }} notes{% else %}Your notes ({{ notes|length }}){% endif %}</h2>
   {% if notes %}
     {% for note in notes %}
       <div class="note">
         <h3>{{ note.title }}</h3>
         <p>{{ note.body }}</p>
+        {% if note.author %}
+          <p><em>by {{ note.author }}</em></p>
+        {% endif %}
+        {% if note.get("tags") %}
+          <p>Tags: {{ note.get("tags") | join(", ") }}</p>
+        {% endif %}
+        <form method="POST" action="{{ url_for('delete_note', idx=loop.index0) }}">
+          <button type="submit">Delete</button>
+        </form>
       </div>
     {% endfor %}
   {% else %}
-    <p>No notes yet.</p>
+    {% if q %}
+      <p>No notes found for "{{ q }}".</p>
+    {% else %}
+      <p>No notes yet.</p>
+    {% endif %}
   {% endif %}
 </body>
 </html>
