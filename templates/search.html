@@ -2,40 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sandbox Notes</title>
+  <title>Search · Sandbox</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     h1 { margin-bottom: 0.25rem; }
-    .meta { color: #666; margin-bottom: 1.5rem; }
+    .meta { color: #666; margin-bottom: 1rem; font-size: 0.9rem; }
     .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
     .note h3 { margin: 0 0 0.5rem; }
-    a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
-    .search-bar { display: flex; gap: 0.5rem; margin: 1rem 0; }
+    mark { background: #fff3cd; padding: 0 2px; border-radius: 2px; }
+    a.back { color: #555; font-size: 0.9rem; }
+    .search-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
     .search-bar input { flex: 1; padding: 0.5rem; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
     .search-bar button { background: #1a2540; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
   </style>
 </head>
 <body>
-  <h1>Sandbox Notes</h1>
-  <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
-
-  <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
+  <h1>Search results</h1>
 
   <form action="{{ url_for('search') }}" method="GET" class="search-bar">
-    <input name="q" type="search" value="{{ q or '' }}" placeholder="Search notes...">
+    <input name="q" type="search" value="{{ query }}" autofocus placeholder="Search notes...">
     <button type="submit">Search</button>
   </form>
 
-  <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
-  {% if notes %}
-    {% for note in notes %}
+  {% if total == 0 %}
+    <p>No notes yet — <a href="{{ url_for('new_note') }}">create one</a>.</p>
+  {% elif results %}
+    <p class="meta">{{ count }} note{{ 's' if count != 1 else '' }} match "{{ query }}"</p>
+    {% for note in results %}
       <div class="note">
         <h3>{{ note.title }}</h3>
-        <p>{{ note.body }}</p>
+        <p>{{ note.snippet }}</p>
       </div>
     {% endfor %}
   {% else %}
-    <p>No notes yet.</p>
+    <p class="meta">No notes match "{{ query }}".</p>
   {% endif %}
+
+  <a class="back" href="{{ url_for('home') }}">← Back to all notes</a>
 </body>
 </html>

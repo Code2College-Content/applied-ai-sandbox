@@ -11,9 +11,17 @@
     button { background: #1a2540; color: #fff; padding: 0.5rem 1.25rem; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
     a { color: #555; margin-left: 1rem; }
     .error { color: #b00020; margin-top: 0.25rem; font-size: 0.9rem; }
+    .search-bar { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+    .search-bar input { flex: 1; padding: 0.5rem; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
+    .search-bar button { background: #1a2540; color: #fff; border: none; padding: 0.5rem 1rem; border-radius: 6px; cursor: pointer; font-weight: 600; }
   </style>
 </head>
 <body>
+  <form action="{{ url_for('search') }}" method="GET" class="search-bar">
+    <input name="q" type="search" placeholder="Search notes...">
+    <button type="submit">Search</button>
+  </form>
+
   <h1>New note</h1>
 
   <form method="POST">
