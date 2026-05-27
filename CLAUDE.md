@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Context Claude Code reads automatically when started in this repo.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## What this project is
 
@@ -14,6 +14,26 @@ task in `tasks/` walks the student through fixing or adding one piece.
 - Flask 3.x
 - pytest
 - Jinja2 templates, vanilla HTML/CSS
+
+## Architecture
+
+**App factory**
+`app.py` exposes `create_app() -> Flask`. Tests call this to get a fresh, isolated instance per test. The bottom of `app.py` also calls it for `python app.py` dev use.
+
+**In-memory data store**
+Notes live on `app.notes` — a plain Python list of `{"title": str, "body": str}` dicts. No database; the list resets on every restart (intentional for sandbox simplicity).
+
+**Routes**
+- `GET /` → `home.html` — lists all notes
+- `GET/POST /notes/new` → `new_note.html` — create form; POST validates, persists, and redirects on success
+- *(TASK 02 adds)* `POST /notes/<idx>/delete` — removes note by list index, redirects
+
+**Template conventions**
+Forms preserve user input on re-render via `{{ value or '' }}`. Validation error messages are displayed in `new_note.html` when a POST fails.
+
+**Test fixtures (`tests/conftest.py`)**
+- `app` — `create_app({"TESTING": True})` with a clean `app.notes = []` each test
+- `client` — `app.test_client()` for making HTTP requests
 
 ## How to run things
 
