@@ -8,8 +8,11 @@
     h1 { margin-bottom: 0.25rem; }
     .meta { color: #666; margin-bottom: 1.5rem; }
     .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+    .note.pinned { border-color: #f5a623; background: #fffbf2; }
     .note h3 { margin: 0 0 0.5rem; }
+    .note-actions { margin-top: 0.5rem; }
     a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
+    button.pin-btn { background: none; border: 1px solid #999; border-radius: 6px; padding: 0.25rem 0.6rem; cursor: pointer; font-size: 0.85rem; }
   </style>
 </head>
 <body>
@@ -18,12 +21,32 @@
 
   <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
 
-  <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
-  {% if notes %}
-    {% for note in notes %}
+  <h2 style="margin-top: 2rem;">Your notes ({{ (pinned|length) + (unpinned|length) }})</h2>
+
+  {% if pinned or unpinned %}
+    {% if pinned and unpinned %}<h3>📌 Pinned</h3>{% endif %}
+    {% for idx, note in pinned %}
+      <div class="note pinned">
+        <h3>{{ note.title }}</h3>
+        <p>{{ note.body }}</p>
+        <div class="note-actions">
+          <form method="POST" action="{{ url_for('pin_note', idx=idx) }}" style="display:inline">
+            <button class="pin-btn" type="submit">Unpin</button>
+          </form>
+        </div>
+      </div>
+    {% endfor %}
+
+    {% if pinned and unpinned %}<h3>Notes</h3>{% endif %}
+    {% for idx, note in unpinned %}
       <div class="note">
         <h3>{{ note.title }}</h3>
         <p>{{ note.body }}</p>
+        <div class="note-actions">
+          <form method="POST" action="{{ url_for('pin_note', idx=idx) }}" style="display:inline">
+            <button class="pin-btn" type="submit">Pin</button>
+          </form>
+        </div>
       </div>
     {% endfor %}
   {% else %}

@@ -5,7 +5,7 @@ describe exactly what "done" means.
 """
 from __future__ import annotations
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, abort
 
 
 def create_app() -> Flask:
@@ -18,7 +18,9 @@ def create_app() -> Flask:
 
     @app.route("/")
     def home():
-        return render_template("home.html", notes=app.notes)
+        pinned = [(i, n) for i, n in enumerate(app.notes) if n.get("pinned", False)]
+        unpinned = [(i, n) for i, n in enumerate(app.notes) if not n.get("pinned", False)]
+        return render_template("home.html", pinned=pinned, unpinned=unpinned)
 
     @app.route("/notes/new", methods=["GET", "POST"])
     def new_note():
@@ -26,11 +28,19 @@ def create_app() -> Flask:
             title = (request.form.get("title") or "").strip()
             body = (request.form.get("body") or "").strip()
             # TASK 01 will add validation here.
-            app.notes.append({"title": title, "body": body})
+            app.notes.append({"title": title, "body": body, "pinned": False})
             return redirect(url_for("home"))
         return render_template("new_note.html")
 
     # TASK 02 will add a /notes/<idx>/delete route here.
+
+    @app.route("/notes/<int:idx>/pin", methods=["POST"])
+    def pin_note(idx):
+        try:
+            app.notes[idx]["pinned"] = not app.notes[idx].get("pinned", False)
+        except IndexError:
+            abort(404)
+        return redirect(url_for("home"))
 
     return app
 
