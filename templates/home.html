@@ -17,17 +17,29 @@
   <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
 
   <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
+  {% if filter_starred %}
+    <a href="{{ url_for('home') }}">Show all notes</a>
+  {% else %}
+    <a href="{{ url_for('home') }}?starred=1">Show starred only</a>
+  {% endif %}
 
-  <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
-  {% if notes %}
-    {% for note in notes %}
+  <h2 style="margin-top: 2rem;">Your notes ({{ indexed|length }})</h2>
+  {% if indexed %}
+    {% for idx, note in indexed %}
       <div class="note">
         <h3>{{ note.title }}</h3>
         <p>{{ note.body }}</p>
+        <form method="post" action="{{ url_for('star_note', idx=idx) }}" style="display:inline">
+          <button type="submit">{{ "★" if note.starred else "☆" }}</button>
+        </form>
       </div>
     {% endfor %}
   {% else %}
-    <p>No notes yet.</p>
+    {% if filter_starred %}
+      <p>No starred notes yet.</p>
+    {% else %}
+      <p>No notes yet.</p>
+    {% endif %}
   {% endif %}
 </body>
 </html>
