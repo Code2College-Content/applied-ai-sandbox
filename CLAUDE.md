@@ -46,3 +46,7 @@ pytest tests/test_task_01.py
 - Run `pytest` after each substantive change.
 - If Claude proposes editing a test to "make it pass," push back. The
   tests are the spec.
+
+## Notes
+
+- Notes stay in the existing in-memory `app.notes` list; do not migrate them to SQLite.
