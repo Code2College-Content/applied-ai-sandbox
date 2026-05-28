@@ -12,6 +12,7 @@
     .tags { margin-top: 0.5rem; }
     .tag { display: inline-block; background: #eef0f5; color: #1a2540; font-size: 0.75rem; font-weight: 600; padding: 0.2rem 0.55rem; border-radius: 999px; margin-right: 0.3rem; }
     a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
+    .delete-btn { background: none; border: 1px solid #ccc; border-radius: 6px; padding: 0.2rem 0.6rem; cursor: pointer; font-size: 0.8rem; color: #b00020; float: right; }
   </style>
 </head>
 <body>
@@ -30,6 +31,9 @@
   {% if notes %}
     {% for note in notes %}
       <div class="note">
+        <form method="POST" action="{{ url_for('delete_note', idx=loop.index0) }}" style="display:inline; float:right;">
+          <button type="submit" class="delete-btn">Delete</button>
+        </form>
         <h3>{{ note.title }}</h3>
         <p>{{ note.body }}</p>
         {% if note.tags %}

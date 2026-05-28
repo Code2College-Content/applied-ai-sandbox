@@ -110,7 +110,15 @@ def create_app() -> Flask:
                 return redirect(url_for("home"))
         return render_template("new_note.html", error=error, title=title, body=body, tags=tags_raw)
 
-    # TASK 02 will add a /notes/<idx>/delete route here.
+    @app.route("/notes/<int:idx>/delete", methods=["POST"])
+    @login_required
+    def delete_note(idx):
+        try:
+            app.notes.pop(idx)
+        except IndexError:
+            from flask import abort
+            abort(404)
+        return redirect(url_for("home"))
 
     return app
 
