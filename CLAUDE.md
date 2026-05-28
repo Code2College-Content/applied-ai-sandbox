@@ -46,3 +46,7 @@ pytest tests/test_task_01.py
 - Run `pytest` after each substantive change.
 - If Claude proposes editing a test to "make it pass," push back. The
   tests are the spec.
+  
+## Scope Discipline Rule
+
+Do not introduce features beyond the explicitly requested functionality. If requirements mention a minimal change (e.g., adding login), avoid expanding into unrelated enhancements like restructuring data models or redesigning storage unless explicitly stated.
