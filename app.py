@@ -87,7 +87,9 @@ def create_app() -> Flask:
     @login_required
     def home():
         username = session["username"]
-        return render_template("home.html", notes=app.notes, username=username)
+        starred_filter = request.args.get("starred") == "1"
+        notes = [n for n in app.notes if n.get("starred")] if starred_filter else app.notes
+        return render_template("home.html", notes=notes, username=username, starred_filter=starred_filter)
 
     @app.route("/notes/new", methods=["GET", "POST"])
     @login_required
@@ -106,7 +108,7 @@ def create_app() -> Flask:
                 error = "Body is required"
             else:
                 tags = [t.strip() for t in tags_raw.split(",") if t.strip()]
-                app.notes.append({"title": title, "body": body, "tags": tags})
+                app.notes.append({"title": title, "body": body, "tags": tags, "starred": False})
                 return redirect(url_for("home"))
         return render_template("new_note.html", error=error, title=title, body=body, tags=tags_raw)
 
@@ -118,6 +120,17 @@ def create_app() -> Flask:
         except IndexError:
             from flask import abort
             abort(404)
+        return redirect(url_for("home"))
+
+    @app.route("/notes/<int:idx>/star", methods=["POST"])
+    @login_required
+    def star_note(idx):
+        try:
+            note = app.notes[idx]
+        except IndexError:
+            from flask import abort
+            abort(404)
+        note["starred"] = not note.get("starred", False)
         return redirect(url_for("home"))
 
     return app
