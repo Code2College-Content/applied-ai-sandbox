@@ -9,7 +9,33 @@
     .meta { color: #666; margin-bottom: 1.5rem; }
     .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
     .note h3 { margin: 0 0 0.5rem; }
+    .note .created-at { color: #666; font-size: 0.9rem; margin: -0.25rem 0 0.75rem; }
+    .note-snippet { margin: 0.25rem 0 0.5rem; color: #444; font-size: 0.95rem; }
+    .note-meta { color: #888; font-size: 0.85rem; margin-top: 0.5rem; }
     a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
+
+    /* Search */
+    .search-wrap { margin: 1.25rem 0; }
+    #search-input { width: 100%; padding: 0.5rem; border: 1px solid #ccc;
+      border-radius: 6px; font: inherit; font-size: 1rem; box-sizing: border-box; }
+    .result-label { color: #555; margin: 0.5rem 0 1rem; font-size: 0.9rem; }
+    mark.highlight { background: #fff3a0; border-radius: 2px; padding: 0 1px; }
+
+    /* Skeleton loader — same structure/height as a note card */
+    .skeleton { border: 1px solid #eee; border-radius: 8px; padding: 1rem;
+      margin-bottom: 0.75rem; animation: pulse 1.2s ease-in-out infinite; }
+    .skeleton-line { background: #e8e8e8; border-radius: 4px; height: 1rem; margin-bottom: 0.5rem; }
+    .skeleton-line.wide   { width: 60%; }
+    .skeleton-line.full   { width: 90%; }
+    .skeleton-line.narrow { width: 35%; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.45; }
+    }
+
+    /* Empty state */
+    .empty-search { color: #555; margin-top: 1rem; }
+    .empty-search button { margin-left: 0.5rem; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -18,16 +44,126 @@
 
   <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
 
-  <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
-  {% if notes %}
-    {% for note in notes %}
-      <div class="note">
-        <h3>{{ note.title }}</h3>
-        <p>{{ note.body }}</p>
-      </div>
-    {% endfor %}
-  {% else %}
-    <p>No notes yet.</p>
-  {% endif %}
+  <div class="search-wrap">
+    <input id="search-input" type="text" maxlength="200"
+           placeholder="Search notes…" autocomplete="off">
+  </div>
+  <div id="result-label" class="result-label" hidden></div>
+
+  <div id="skeletons" hidden>
+    <div class="skeleton"><div class="skeleton-line wide"></div><div class="skeleton-line full"></div><div class="skeleton-line narrow"></div></div>
+    <div class="skeleton"><div class="skeleton-line wide"></div><div class="skeleton-line full"></div><div class="skeleton-line narrow"></div></div>
+    <div class="skeleton"><div class="skeleton-line wide"></div><div class="skeleton-line full"></div><div class="skeleton-line narrow"></div></div>
+  </div>
+
+  <div id="search-results" hidden></div>
+
+  <div id="notes-list">
+    <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
+    {% if notes %}
+      {% for note in notes %}
+        <div class="note">
+          <h3>{{ note.title }}</h3>
+          {% if note.get('created_at') %}
+            <div class="created-at">Created: {{ note.get('created_at') }}</div>
+          {% endif %}
+          <p>{{ note.body }}</p>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p>No notes yet.</p>
+    {% endif %}
+  </div>
+
+  <script>
+  (function () {
+    var input   = document.getElementById('search-input');
+    var skels   = document.getElementById('skeletons');
+    var results = document.getElementById('search-results');
+    var label   = document.getElementById('result-label');
+    var list    = document.getElementById('notes-list');
+
+    var controller = null, timer = null;
+
+    function esc(s) {
+      return String(s).replace(/[&<>"']/g, function (c) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+      });
+    }
+
+    function highlight(text, q) {
+      if (!q) return esc(text);
+      var re = new RegExp('(' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+      return text.split(re).map(function (part, i) {
+        return i % 2 === 1
+          ? '<mark class="highlight">' + esc(part) + '</mark>'
+          : esc(part);
+      }).join('');
+    }
+
+    function wordCount(body) {
+      return (body || '').trim().split(/\s+/).filter(Boolean).length;
+    }
+
+    function renderNote(note, q) {
+      var snippet = note.snippet
+        ? '<p class="note-snippet">' + highlight(note.snippet, q) + '</p>'
+        : '';
+      var meta = '<div class="note-meta">'
+        + esc(note.created_at || 'Unknown date')
+        + ' · ' + wordCount(note.body) + ' words</div>';
+      return '<div class="note"><h3>' + highlight(note.title, q) + '</h3>'
+        + snippet + meta + '</div>';
+    }
+
+    function doSearch(q) {
+      if (controller) { controller.abort(); }
+      controller = new AbortController();
+
+      skels.hidden = false;
+      results.hidden = true;
+      list.hidden = true;
+      label.hidden = true;
+
+      fetch('/notes?q=' + encodeURIComponent(q) + '&limit=20', { signal: controller.signal })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          skels.hidden = true;
+          if (data.total_count === 0) {
+            results.innerHTML = '<p class="empty-search">No notes matching &ldquo;<strong>'
+              + esc(q) + '</strong>&rdquo; <button onclick="clearSearch()">Clear</button></p>';
+          } else {
+            label.textContent = data.total_count + ' result'
+              + (data.total_count === 1 ? '' : 's') + ' for “' + q + '”';
+            label.hidden = false;
+            results.innerHTML = data.notes.map(function (n) { return renderNote(n, q); }).join('');
+          }
+          results.hidden = false;
+        })
+        .catch(function (e) {
+          if (e.name !== 'AbortError') {
+            skels.hidden = true;
+            list.hidden = false;
+          }
+        });
+    }
+
+    function clearSearch() {
+      input.value = '';
+      skels.hidden = true;
+      results.hidden = true;
+      label.hidden = true;
+      list.hidden = false;
+    }
+    window.clearSearch = clearSearch;
+
+    input.addEventListener('input', function () {
+      clearTimeout(timer);
+      var q = this.value.trim();
+      if (!q) { clearSearch(); return; }
+      timer = setTimeout(function () { doSearch(q); }, 300);
+    });
+  })();
+  </script>
 </body>
 </html>
