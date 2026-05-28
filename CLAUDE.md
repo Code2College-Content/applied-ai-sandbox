@@ -46,3 +46,10 @@ pytest tests/test_task_01.py
 - Run `pytest` after each substantive change.
 - If Claude proposes editing a test to "make it pass," push back. The
   tests are the spec.
+
+  ## Auth
+
+- Use Flask-Login for authentication.
+- Hash passwords with werkzeug.security.
+- Do not build custom auth systems or store plaintext passwords.
+- Password reset and email verification are out of scope.
