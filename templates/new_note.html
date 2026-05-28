@@ -19,10 +19,18 @@
   <form method="POST">
     <label for="title">Title</label>
     <input id="title" name="title" type="text" value="{{ title or '' }}">
-    {# TASK 01 will surface a "Title is required" error message here. #}
+    {% if error == "Title is required" %}
+      <p class="error">Title is required</p>
+    {% endif %}
 
     <label for="body">Body</label>
     <textarea id="body" name="body" rows="6">{{ body or '' }}</textarea>
+    {% if error == "Body is required" %}
+      <p class="error">Body is required</p>
+    {% endif %}
+
+    <label for="tags">Tags <span style="font-weight:400;color:#666;">(optional, comma-separated)</span></label>
+    <input id="tags" name="tags" type="text" placeholder="e.g. python, flask" value="{{ tags or '' }}">
 
     <div class="actions">
       <button type="submit">Save note</button>
