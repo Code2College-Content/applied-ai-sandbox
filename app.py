@@ -39,11 +39,20 @@ def create_app() -> Flask:
             title = (request.form.get("title") or "").strip()
             body = (request.form.get("body") or "").strip()
             # TASK 01 will add validation here.
-            app.notes.append({"title": title, "body": body})
+            app.notes.append({"title": title, "body": body, "starred": False})
             return redirect(url_for("home"))
         return render_template("new_note.html")
 
     # TASK 02 will add a /notes/<idx>/delete route here.
+
+    @app.route("/notes/<int:idx>/star", methods=["POST"])
+    @login_required
+    def star_note(idx):
+        if idx < 0 or idx >= len(app.notes):
+            from flask import abort
+            abort(404)
+        app.notes[idx]["starred"] = not app.notes[idx].get("starred", False)
+        return redirect(url_for("home"))
 
     @app.route("/register", methods=["GET", "POST"])
     def register():

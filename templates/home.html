@@ -7,27 +7,53 @@
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
     h1 { margin-bottom: 0.25rem; }
     .meta { color: #666; margin-bottom: 1.5rem; }
-    .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+    .note { position: relative; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
     .note h3 { margin: 0 0 0.5rem; }
+    .toolbar { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 1.5rem; }
     a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
+    button.btn { background: #1a2540; color: #fff; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font: inherit; font-weight: 600; }
+    button.btn.active { background: #f0c040; color: #333; }
+    .star-form { position: absolute; top: 0.75rem; right: 0.75rem; margin: 0; }
+    .star-btn { background: none; border: none; font-size: 1.25rem; cursor: pointer; line-height: 1; padding: 0; color: #ccc; }
+    .note.starred .star-btn { color: #f0c040; }
+    .empty-starred { display: none; color: #666; margin-top: 1rem; }
+    body.starred-only .note:not(.starred) { display: none; }
+    body.starred-only .empty-starred { display: block; }
   </style>
 </head>
 <body>
   <h1>Sandbox Notes</h1>
   <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
 
-  <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
+  <div class="toolbar">
+    <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
+    <button class="btn" id="starred-toggle" onclick="toggleStarred()">&#9733; Starred</button>
+  </div>
 
-  <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
+  <h2 style="margin-top: 1rem;">Your notes ({{ notes|length }})</h2>
   {% if notes %}
     {% for note in notes %}
-      <div class="note">
+      <div class="note{% if note.starred %} starred{% endif %}">
+        <form class="star-form" method="POST" action="{{ url_for('star_note', idx=loop.index0) }}">
+          <button class="star-btn" type="submit" title="{% if note.starred %}Unstar{% else %}Star{% endif %}">
+            {% if note.starred %}&#9733;{% else %}&#9734;{% endif %}
+          </button>
+        </form>
         <h3>{{ note.title }}</h3>
         <p>{{ note.body }}</p>
       </div>
     {% endfor %}
+    <p class="empty-starred">No starred notes. Star a note to see it here.</p>
   {% else %}
     <p>No notes yet.</p>
   {% endif %}
+
+  <script>
+    function toggleStarred() {
+      var btn = document.getElementById('starred-toggle');
+      document.body.classList.toggle('starred-only');
+      btn.classList.toggle('active');
+    }
+  </script>
 </body>
 </html>
