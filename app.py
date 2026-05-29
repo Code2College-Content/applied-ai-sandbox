@@ -25,8 +25,9 @@ def create_app() -> Flask:
         if request.method == "POST":
             title = (request.form.get("title") or "").strip()
             body = (request.form.get("body") or "").strip()
+            tags = [t.strip() for t in (request.form.get("tags") or "").split(",") if t.strip()]
             # TASK 01 will add validation here.
-            app.notes.append({"title": title, "body": body})
+            app.notes.append({"title": title, "body": body, "tags": tags})
             return redirect(url_for("home"))
         return render_template("new_note.html")
 
