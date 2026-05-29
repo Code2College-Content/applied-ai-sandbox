@@ -5,6 +5,8 @@ describe exactly what "done" means.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from flask import Flask, render_template, request, redirect, url_for
 
 
@@ -25,8 +27,9 @@ def create_app() -> Flask:
         if request.method == "POST":
             title = (request.form.get("title") or "").strip()
             body = (request.form.get("body") or "").strip()
+            tags = (request.form.get("tags") or "").strip()
             # TASK 01 will add validation here.
-            app.notes.append({"title": title, "body": body})
+            app.notes.append({"title": title, "body": body, "tags": tags})
             return redirect(url_for("home"))
         return render_template("new_note.html")
 

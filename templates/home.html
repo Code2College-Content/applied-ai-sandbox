@@ -8,7 +8,8 @@
     h1 { margin-bottom: 0.25rem; }
     .meta { color: #666; margin-bottom: 1.5rem; }
     .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
-    .note h3 { margin: 0 0 0.5rem; }
+    .note h3 { margin: 0 0 0.25rem; }
+    .note .created { color: #888; font-size: 0.85rem; margin: 0 0 0.5rem; }
     a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
   </style>
 </head>
@@ -22,8 +23,11 @@
   {% if notes %}
     {% for note in notes %}
       <div class="note">
-        <h3>{{ note.title }}</h3>
-        <p>{{ note.body }}</p>
+        <h3 style="color: {{ note.text_color or '#000000' }}">{{ note.title }}</h3>
+        {% if note.created_at %}
+          <p class="created">{{ note.created_at.strftime('%b %d, %Y at %I:%M %p UTC') }}</p>
+        {% endif %}
+        <p style="color: {{ note.text_color or '#000000' }}">{{ note.body }}</p>
       </div>
     {% endfor %}
   {% else %}

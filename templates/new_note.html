@@ -14,20 +14,38 @@
   </style>
 </head>
 <body>
-  <h1>New note</h1>
+  <h1>{% if idx is not none %}Edit note{% else %}New note :){% endif %}</h1>
 
-  <form method="POST">
+  <form method="POST" {% if idx is not none %}action="{{ url_for('edit_note', idx=idx) }}"{% endif %}>
     <label for="title">Title</label>
     <input id="title" name="title" type="text" value="{{ title or '' }}">
-    {# TASK 01 will surface a "Title is required" error message here. #}
+    {% if errors and errors.title %}<div class="error">{{ errors.title }}</div>{% endif %}
 
     <label for="body">Body</label>
     <textarea id="body" name="body" rows="6">{{ body or '' }}</textarea>
+    {% if errors and errors.body %}<div class="error">{{ errors.body }}</div>{% endif %}
+
+    <label for="text_color">Text color</label>
+    <input id="text_color" name="text_color" type="color" value="{{ text_color or '#000000' }}" style="width:auto;padding:0.15rem;height:2.2rem;cursor:pointer;">
 
     <div class="actions">
-      <button type="submit">Save note</button>
+      <button type="submit">Change Note</button>
       <a href="{{ url_for('home') }}">Cancel</a>
     </div>
   </form>
+
+  <script>
+    const color = document.getElementById('text_color');
+    const title  = document.getElementById('title');
+    const body   = document.getElementById('body');
+
+    function applyColor(color) {
+      title.style.color = color;
+      body.style.color  = color;
+    }
+
+    color.addEventListener('input', () => applyColor(color.value));
+    applyColor(color.value);
+  </script>
 </body>
 </html>

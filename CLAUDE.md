@@ -38,6 +38,7 @@ pytest tests/test_task_01.py
 - Keep changes scoped to the task. Don't refactor unrelated files.
 - When unsure, prefer reading the test file first — it tells you exactly
   what behavior is expected.
+- Use only the languages specified instructed and within context.
 
 ## Working with Claude here
 
