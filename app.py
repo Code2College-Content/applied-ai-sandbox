@@ -5,7 +5,7 @@ describe exactly what "done" means.
 """
 from __future__ import annotations
 
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 
 
 def create_app() -> Flask:
@@ -16,9 +16,24 @@ def create_app() -> Flask:
     # fine for practice. Real apps use a database.
     app.notes: list[dict] = []  # type: ignore[attr-defined]
 
+    @app.route("/login", methods=["GET", "POST"])
+    def login():
+        error = None
+        if request.method == "POST":
+            if request.form.get("username") == "admin" and request.form.get("password") == "password":
+                session["username"] = request.form["username"]
+                return redirect(url_for("home"))
+            error = "Invalid credentials"
+        return render_template("login.html", error=error)
+
+    @app.route("/logout", methods=["POST"])
+    def logout():
+        session.clear()
+        return redirect(url_for("login"))
+
     @app.route("/")
     def home():
-        return render_template("home.html", notes=app.notes)
+        return render_template("home.html", notes=app.notes, username=session.get("username", ""))
 
     @app.route("/notes/new", methods=["GET", "POST"])
     def new_note():
@@ -26,7 +41,7 @@ def create_app() -> Flask:
             title = (request.form.get("title") or "").strip()
             body = (request.form.get("body") or "").strip()
             # TASK 01 will add validation here.
-            app.notes.append({"title": title, "body": body})
+            app.notes.append({"title": title, "body": body, "tags": []})
             return redirect(url_for("home"))
         return render_template("new_note.html")
 
