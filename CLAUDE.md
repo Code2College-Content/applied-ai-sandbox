@@ -39,6 +39,12 @@ pytest tests/test_task_01.py
 - When unsure, prefer reading the test file first — it tells you exactly
   what behavior is expected.
 
+## Auth
+
+- Use Flask-Login + `werkzeug.security` for any login flow — never roll a custom session or hash passwords manually.
+- Never store plaintext passwords.
+- Password reset, email verification, and "remember me" are out of scope for this sandbox.
+
 ## Working with Claude here
 
 - Always read the task file before writing code.
