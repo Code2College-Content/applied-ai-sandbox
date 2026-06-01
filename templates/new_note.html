@@ -24,6 +24,9 @@
     <label for="body">Body</label>
     <textarea id="body" name="body" rows="6">{{ body or '' }}</textarea>
 
+    <label for="tags">Tags <small style="font-weight:400">(comma-separated)</small></label>
+    <input id="tags" name="tags" type="text" value="{{ tags_raw or '' }}" placeholder="e.g. work, urgent">
+
     <div class="actions">
       <button type="submit">Save note</button>
       <a href="{{ url_for('home') }}">Cancel</a>
