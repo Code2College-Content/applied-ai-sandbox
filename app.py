@@ -5,6 +5,8 @@ describe exactly what "done" means.
 """
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from flask import Flask, render_template, request, redirect, url_for
 
 
@@ -22,7 +24,14 @@ def create_app() -> Flask:
 
     @app.route("/")
     def home():
-        return render_template("home.html", notes=app.notes)
+        notes = app.notes
+        q = request.args.get("q", "").strip().lower()
+        show_starred = request.args.get("starred") == "1"
+        if show_starred:
+            notes = [n for n in notes if n.get("starred")]
+        if q:
+            notes = [n for n in notes if q in n["title"].lower() or q in n["body"].lower()]
+        return render_template("home.html", notes=notes, q=q, show_starred=show_starred)
 
     @app.route("/notes/new", methods=["GET", "POST"])
     def new_note():
@@ -31,11 +40,26 @@ def create_app() -> Flask:
             body = (request.form.get("body") or "").strip()
             tags = parse_tags(request.form.get("tags") or "")
             # TASK 01 will add validation here.
-            app.notes.append({"title": title, "body": body, "tags": tags})
+            idx = len(app.notes)
+            app.notes.append({
+                "id": idx,
+                "title": title,
+                "body": body,
+                "tags": tags,
+                "starred": False,
+                "updatedAt": datetime.now(timezone.utc).isoformat(),
+            })
             return redirect(url_for("home"))
         return render_template("new_note.html")
 
     # TASK 02 will add a /notes/<idx>/delete route here.
+
+    @app.route("/notes/<int:idx>/star", methods=["POST"])
+    def toggle_star(idx):
+        note = app.notes[idx]
+        note["starred"] = not note.get("starred", False)
+        note["updatedAt"] = datetime.now(timezone.utc).isoformat()
+        return redirect(url_for("home", **request.args))
 
     return app
 

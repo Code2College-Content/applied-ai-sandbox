@@ -5,25 +5,51 @@
   <title>Sandbox Notes</title>
   <style>
     body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
-    h1 { margin-bottom: 0.25rem; }
+    .topbar { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .topbar h1 { margin: 0; flex: none; }
+    .search-form { display: flex; gap: 0.4rem; flex: 1; min-width: 160px; }
+    .search-form input { flex: 1; padding: 0.4rem 0.6rem; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
+    .search-form button { padding: 0.4rem 0.75rem; border: 1px solid #ccc; border-radius: 6px; background: #fff; cursor: pointer; font: inherit; }
+    a.btn, button.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; border: none; cursor: pointer; font: inherit; font-weight: 600; }
+    a.btn.active { background: #f5a623; color: #000; }
+    .note { display: flex; align-items: flex-start; gap: 0.75rem; border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
+    .star-form { flex: none; }
+    .star-btn { background: none; border: none; font-size: 1.3rem; cursor: pointer; line-height: 1; padding: 0; color: #f5a623; }
+    .note-body { flex: 1; min-width: 0; }
+    .note-body h3 { margin: 0 0 0.25rem; }
+    .note-preview { color: #444; margin: 0 0 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .note-date { color: #999; font-size: 0.8rem; margin: 0; }
     .meta { color: #666; margin-bottom: 1.5rem; }
-    .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
-    .note h3 { margin: 0 0 0.5rem; }
-    a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
   </style>
 </head>
 <body>
-  <h1>Sandbox Notes</h1>
-  <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
+  <div class="topbar">
+    <h1>Sandbox Notes</h1>
+    <form class="search-form" method="GET" action="/">
+      {% if show_starred %}<input type="hidden" name="starred" value="1">{% endif %}
+      <input type="search" name="q" value="{{ q }}" placeholder="Search…">
+      <button type="submit">Search</button>
+    </form>
+    {% if show_starred %}
+      <a class="btn active" href="{{ url_for('home', q=q) if q else url_for('home') }}">★ Starred</a>
+    {% else %}
+      <a class="btn" href="{{ url_for('home', starred=1, q=q) if q else url_for('home', starred=1) }}">☆ Starred</a>
+    {% endif %}
+    <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
+  </div>
 
-  <a class="btn" href="{{ url_for('new_note') }}">+ New note</a>
-
-  <h2 style="margin-top: 2rem;">Your notes ({{ notes|length }})</h2>
+  <h2>Your notes ({{ notes|length }})</h2>
   {% if notes %}
     {% for note in notes %}
       <div class="note">
-        <h3>{{ note.title }}</h3>
-        <p>{{ note.body }}</p>
+        <form class="star-form" method="POST" action="/notes/{{ note.id }}/star{% if show_starred or q %}?{% endif %}{{ 'starred=1' if show_starred else '' }}{{ '&' if show_starred and q else '' }}{{ ('q=' ~ q) if q else '' }}">
+          <button class="star-btn" type="submit" title="Toggle star">{{ '★' if note.starred else '☆' }}</button>
+        </form>
+        <div class="note-body">
+          <h3>{{ note.title }}</h3>
+          <p class="note-preview">{{ note.body | truncate(100) }}</p>
+          <p class="note-date">{{ note.updatedAt[:10] if note.updatedAt else '' }}</p>
+        </div>
       </div>
     {% endfor %}
   {% else %}
