@@ -10,9 +10,20 @@
     .note { border: 1px solid #ddd; border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; }
     .note h3 { margin: 0 0 0.5rem; }
     a.btn { display: inline-block; background: #1a2540; color: #fff; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; }
+    .session-bar { display: flex; justify-content: space-between; align-items: center; color: #666; font-size: 0.9rem; }
+    .session-bar button { background: none; border: none; color: #555; text-decoration: underline; cursor: pointer; font: inherit; padding: 0; }
+    .tags { margin-left: 0.5rem; }
+    .chip { display: inline-block; background: #eef1f7; color: #333; font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 999px; margin-right: 0.25rem; }
   </style>
 </head>
 <body>
+  <div class="session-bar">
+    <span>Logged in as {{ username }}</span>
+    <form method="POST" action="{{ url_for('logout') }}">
+      <button type="submit">Log out</button>
+    </form>
+  </div>
+
   <h1>Sandbox Notes</h1>
   <p class="meta">A tiny note-taking app. Practice ground for the Applied AI cohort.</p>
 
@@ -22,7 +33,10 @@
   {% if notes %}
     {% for note in notes %}
       <div class="note">
-        <h3>{{ note.title }}</h3>
+        <h3>
+          {{ note.title }}
+          {% if note.tags %}<span class="tags">{% for tag in note.tags %}<span class="chip">{{ tag }}</span>{% endfor %}</span>{% endif %}
+        </h3>
         <p>{{ note.body }}</p>
       </div>
     {% endfor %}
