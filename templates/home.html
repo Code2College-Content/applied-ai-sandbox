@@ -14,6 +14,8 @@
     .session-bar button { background: none; border: none; color: #555; text-decoration: underline; cursor: pointer; font: inherit; padding: 0; }
     .tags { margin-left: 0.5rem; }
     .chip { display: inline-block; background: #eef1f7; color: #333; font-size: 0.75rem; padding: 0.15rem 0.5rem; border-radius: 999px; margin-right: 0.25rem; }
+    .pin-badge { margin-left: 0.4rem; }
+    .pin-btn { background: none; border: 1px solid #ccc; color: #555; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.8rem; cursor: pointer; margin-top: 0.5rem; }
   </style>
 </head>
 <body>
@@ -35,9 +37,13 @@
       <div class="note">
         <h3>
           {{ note.title }}
+          {% if note.pinned %}<span class="pin-badge">📌</span>{% endif %}
           {% if note.tags %}<span class="tags">{% for tag in note.tags %}<span class="chip">{{ tag }}</span>{% endfor %}</span>{% endif %}
         </h3>
         <p>{{ note.body }}</p>
+        <form method="POST" action="{{ url_for('toggle_pin', idx=note.idx) }}">
+          <button type="submit" class="pin-btn">{{ 'Unpin' if note.pinned else 'Pin' }}</button>
+        </form>
       </div>
     {% endfor %}
   {% else %}
